@@ -1,0 +1,6 @@
+**/.DS_Store
+build/*
+.idea/*
+.cache/*
+bin/*
+lib/*
