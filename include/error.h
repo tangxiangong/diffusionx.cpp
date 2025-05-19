@@ -3,10 +3,12 @@
 
 #include <string>
 #include <expected>
+#include <optional>
+#include <utility>
 
 struct Error {
     std::string message;
-    Error(const std::string& msg) : message(msg) {}
+    explicit Error(std::string  msg) : message(std::move(msg)) {}
     static Error InvalidArgument(const std::string& msg) {
         return Error("Invalid argument: " + msg);
     }
@@ -20,8 +22,15 @@ inline std::unexpected<Error> Err(const Error& e) {
 }
 
 template <typename T>
-inline std::expected<T, Error> Ok(T&& value) {
+std::expected<T, Error> Ok(T&& value) {
     return std::expected<T, Error>(std::forward<T>(value));
 }
+
+template <typename T>
+std::optional<T> Some(T&& value) {
+    return std::optional<T>(std::forward<T>(value));
+}
+
+using None = std::nullopt_t;
 
 #endif //ERROR_H
