@@ -4,25 +4,100 @@
 #include <vector>
 #include <thread>
 #include <future>
-#include <cstddef>
-#include <tbb/parallel_for.h>
-#include <tbb/blocked_range.h>
+#include <random>
+#include <algorithm>
+
+inline auto generator() -> std::mt19937 {
+    std::random_device rd;
+    std::seed_seq ssq{rd(), rd(), rd(), rd(), rd(), rd(), rd(), rd()};
+    return std::mt19937(ssq);
+}
 
 template<typename T, typename F>
 std::vector<T> parallel_generate(size_t n, F sampler) {
-    std::vector<T> result(n); // Pre-allocate the entire result vector
+    std::vector<T> result(n);
     if (n == 0) {
         return result;
     }
 
-    tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, n),
-        [&](const tbb::blocked_range<size_t>& range) {
-            for (size_t i = range.begin(); i != range.end(); ++i) {
-                result[i] = sampler();
-            }
+    unsigned int num_threads = std::thread::hardware_concurrency();
+    if (num_threads == 0) {
+        num_threads = 1; // Fallback if hardware_concurrency is not available or returns 0
+    }
+    if (n < num_threads) {
+        // If n is small, no need for many threads
+        num_threads = static_cast<unsigned int>(n);
+    }
+
+
+    std::vector<std::thread> threads;
+    threads.reserve(num_threads);
+
+    size_t block_size = (n + num_threads - 1) / num_threads; // Calculate block size, ceiling division
+
+    for (unsigned int i = 0; i < num_threads; ++i) {
+        size_t start_index = i * block_size;
+        size_t end_index = std::min(start_index + block_size, n);
+
+        if (start_index < end_index) {
+            // Ensure there's work to do
+            threads.emplace_back([&result, sampler, start_index, end_index]() mutable {
+                for (size_t j = start_index; j < end_index; ++j) {
+                    result[j] = sampler();
+                }
+            });
         }
-    );
+    }
+
+    for (std::thread &t: threads) {
+        if (t.joinable()) {
+            t.join();
+        }
+    }
+
+    return result;
+}
+
+// Version using std::async
+template<typename T, typename F>
+std::vector<T> parallel_generate_async(size_t n, F sampler) {
+    std::vector<T> result(n);
+    if (n == 0) {
+        return result;
+    }
+
+    unsigned int num_threads = std::thread::hardware_concurrency();
+    if (num_threads == 0) {
+        num_threads = 1;
+    }
+    if (n < num_threads) {
+        num_threads = static_cast<unsigned int>(n);
+    }
+
+    std::vector<std::future<void> > futures;
+    futures.reserve(num_threads);
+
+    size_t block_size = (n + num_threads - 1) / num_threads;
+
+    for (unsigned int i = 0; i < num_threads; ++i) {
+        size_t start_index = i * block_size;
+        size_t end_index = std::min(start_index + block_size, n);
+
+        if (start_index < end_index) {
+            futures.emplace_back(std::async(std::launch::async, [start_index, end_index, &result, sampler]() mutable {
+                for (size_t j = start_index; j < end_index; ++j) {
+                    result[j] = sampler();
+                }
+            }));
+        }
+    }
+
+    for (auto &fut: futures) {
+        if (fut.valid()) {
+            // Ensure the future is valid before calling get()
+            fut.get(); // Wait for the async task to complete and retrieve exceptions if any
+        }
+    }
 
     return result;
 }

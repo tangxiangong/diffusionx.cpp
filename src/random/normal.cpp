@@ -1,40 +1,9 @@
 #include "random/normal.h"
 #include "random/utils.h"
-#include <random>
-#include <format>
 #include <cmath>
-#include <mutex>
-#include <vector>
 
 using std::vector;
 using std::format;
-
-namespace {
-
-class SeedProvider {
-public:
-    SeedProvider() {
-        std::random_device rd;
-        std::seed_seq ssq{rd(), rd(), rd(), rd(), rd(), rd(), rd(), rd()};
-        m_master_rng.seed(ssq);
-    }
-
-    std::uint32_t get_seed() {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        return m_master_rng();
-    }
-
-private:
-    std::mt19937 m_master_rng;
-    std::mutex m_mutex;
-};
-
-SeedProvider& get_seed_provider() {
-    static SeedProvider instance;
-    return instance;
-}
-
-}
 
 namespace normal {
     Result<vector<double> > rands(size_t n, double mean, double stddev) {
@@ -45,8 +14,8 @@ namespace normal {
             )));
         }
         auto sampler = [mean, stddev]() mutable {
-            thread_local std::mt19937 gen{get_seed_provider().get_seed()};
-            thread_local std::normal_distribution<double> dist{mean, stddev};
+            thread_local static std::mt19937 gen = generator();
+            std::normal_distribution<double> dist(mean, stddev);
             return dist(gen);
         };
         return Ok(parallel_generate<double>(n, sampler));
