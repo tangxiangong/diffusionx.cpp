@@ -4,7 +4,7 @@
 #include "../error.h"
 
 namespace normal {
-    Result<std::vector<double>> rands(size_t n = 1, double mu = 0.0, double sigma = 1.0);
+    Result<std::vector<double>> rands(size_t n = 1, double mean = 0.0, double stddev = 1.0);
 
     class Normal {
     private:
