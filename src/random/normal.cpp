@@ -1,14 +1,19 @@
 #include "random/normal.h"
 #include "random/utils.h"
 #include <random>
+#include <format>
 
 
 using std::vector;
+using std::format;
 
 namespace normal {
-    Result<std::vector<double>> rands(size_t n, double mean, double stddev) {
+    Result<vector<double>> rands(size_t n, double mean, double stddev) {
         if (stddev <= 0) {
-            return Err(Error::InvalidArgument("Standard deviation must be positive"));
+            return Err(Error::InvalidArgument(format(
+                "The standard deviation `stddev` must be positive, but got {}",
+                stddev
+            )));
         }
         auto sampler = [mean, stddev]() mutable {
             thread_local std::mt19937 gen{std::random_device{}()};
