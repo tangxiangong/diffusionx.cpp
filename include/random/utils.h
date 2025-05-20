@@ -5,33 +5,27 @@
 #include <thread>
 #include <future>
 #include <cstddef>
+#include <tbb/parallel_for.h>
+#include <tbb/blocked_range.h>
 
 template<typename T, typename F>
-std::vector<T> parallel_sample(size_t n, F sampler) {
-    unsigned int num_threads = std::thread::hardware_concurrency();
-    if (num_threads == 0) num_threads = 4;
-    size_t block_size = n / num_threads;
-    size_t remainder = n % num_threads;
-    std::vector<std::future<std::vector<T>>> futures;
-    for (unsigned int t = 0; t < num_threads; ++t) {
-        size_t this_block = block_size + (t < remainder ? 1 : 0);
-        futures.push_back(std::async(std::launch::async, [sampler, this_block]() mutable {
-            std::vector<T> local_result;
-            local_result.reserve(this_block);
-            for (size_t i = 0; i < this_block; ++i) {
-                local_result.push_back(sampler());
+std::vector<T> parallel_generate(size_t n, F sampler) {
+    std::vector<T> result(n); // Pre-allocate the entire result vector
+    if (n == 0) {
+        return result;
+    }
+
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, n),
+        [&](const tbb::blocked_range<size_t>& range) {
+            for (size_t i = range.begin(); i != range.end(); ++i) {
+                result[i] = sampler();
             }
-            return local_result;
-        }));
-    }
-    std::vector<T> result;
-    result.reserve(n);
-    for (auto& fut : futures) {
-        auto part = fut.get();
-        result.insert(result.end(), part.begin(), part.end());
-    }
+        }
+    );
+
     return result;
 }
 
 
-#endif // UTILS_H 
+#endif // UTILS_H
