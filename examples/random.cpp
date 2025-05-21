@@ -1,15 +1,15 @@
 #include <print>
-#include "random/normal.h"
-#include "random/exponential.h"
+#include "random/normal.hpp"
+#include "random/exponential.hpp"
 #include <chrono>
 
-#include "random/poisson.h"
+#include "random/poisson.hpp"
 
 int main() {
     {
         auto start_time = std::chrono::high_resolution_clock::now();
 
-        auto normal = randn(3);
+        Result<vector<float>> normal = randn<float>(3);
 
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
@@ -28,7 +28,7 @@ int main() {
     {
         auto start_time = std::chrono::high_resolution_clock::now();
 
-        auto exp = randexp(3);
+        auto exp = randexp<float>(3);
 
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
