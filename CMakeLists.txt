@@ -3,18 +3,16 @@ project(diffusionx)
 
 set(CMAKE_CXX_STANDARD 23)
 
-include_directories(${PROJECT_SOURCE_DIR}/include)
-
-file(GLOB_RECURSE SRC "${PROJECT_SOURCE_DIR}/src/*.cpp")
-
 # 设置库输出目录
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
-add_library(diffusionx STATIC ${SRC})
-
-add_library(diffusionx-shared SHARED ${SRC})
+add_library(diffusionx INTERFACE)
+target_include_directories(diffusionx INTERFACE
+#    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/src
+)
 
 # 自动为examples目录下每个cpp生成可执行文件
 file(GLOB EXAMPLES_SRC "${PROJECT_SOURCE_DIR}/examples/*.cpp")
