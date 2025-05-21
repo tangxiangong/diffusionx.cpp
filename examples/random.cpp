@@ -2,13 +2,11 @@
 #include "random/normal.h"
 #include <chrono>
 
-using normal::rands;
-
 int main() {
     
     auto start_time = std::chrono::high_resolution_clock::now();
 
-    auto result = rands(1000000000);
+    auto result = randn(1000000000);
 
     auto end_time = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
