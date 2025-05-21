@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.31)
-project(duffusionx)
+project(diffusionx)
 
 set(CMAKE_CXX_STANDARD 23)
 
@@ -21,5 +21,5 @@ file(GLOB EXAMPLES_SRC "${PROJECT_SOURCE_DIR}/examples/*.cpp")
 foreach (example_file ${EXAMPLES_SRC})
     get_filename_component(example_name ${example_file} NAME_WE)
     add_executable(${example_name} ${example_file})
-    target_link_libraries(${example_name} PRIVATE duffusionx)
+    target_link_libraries(${example_name} PRIVATE diffusionx)
 endforeach ()
