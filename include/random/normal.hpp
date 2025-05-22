@@ -2,7 +2,6 @@
 #define NORMAL_H
 #include <vector>
 #include <format>
-#include <expected>
 #include <type_traits>
 #include "../error.hpp"
 #include "random/utils.hpp"
@@ -12,7 +11,7 @@ using std::vector;
 
 
 template<typename T = double> requires std::is_floating_point_v<T>
-Result<vector<T> > randn(size_t n = 1, T mean = 0, T stddev = 1) {
+Result<vector<T> > randn(size_t n, T mean = 0, T stddev = 1) {
     if (stddev <= 0) {
         return Err(Error::InvalidArgument(format(
             "The standard deviation `stddev` must be positive, but got {}",
@@ -25,6 +24,20 @@ Result<vector<T> > randn(size_t n = 1, T mean = 0, T stddev = 1) {
         return dist(gen);
     };
     return Ok(parallel_generate<T>(n, sampler));
+}
+
+template<typename T = double> requires std::is_floating_point_v<T>
+Result<vector<T> > randn(T mean = 0, T stddev = 1) {
+    if (stddev <= 0) {
+        return Err(Error::InvalidArgument(format(
+            "The standard deviation `stddev` must be positive, but got {}",
+            stddev
+        )));
+    }
+
+    thread_local static std::mt19937 gen = generator();
+    std::normal_distribution<T> dist(mean, stddev);
+    return dist(gen);
 }
 
 template<typename T> requires std::is_floating_point_v<T>
