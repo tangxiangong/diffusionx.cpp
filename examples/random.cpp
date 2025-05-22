@@ -6,10 +6,11 @@
 #include "random/poisson.hpp"
 
 int main() {
+    size_t len = 10;
     {
         auto start_time = std::chrono::high_resolution_clock::now();
 
-        Result<vector<float>> normal = randn<float>(3);
+        auto normal = randn<float>(len);
 
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
@@ -28,7 +29,7 @@ int main() {
     {
         auto start_time = std::chrono::high_resolution_clock::now();
 
-        auto exp = randexp<float>(3);
+        auto exp = randexp<float>(len);
 
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
@@ -48,7 +49,7 @@ int main() {
     {
         auto start_time = std::chrono::high_resolution_clock::now();
 
-        auto poisson = rand_poisson<unsigned long>(3);
+        auto poisson = rand_poisson<unsigned long>(len);
 
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
