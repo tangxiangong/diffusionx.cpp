@@ -26,6 +26,20 @@ Result<vector<T> > randexp(size_t n, T rate = 1.0) {
     return Ok(parallel_generate<T>(n, sampler));
 }
 
+template<typename T = double> requires std::is_floating_point_v<T>
+Result<T> randexp(T rate = 1.0) {
+    if (rate <= 0) {
+        return Err(Error::InvalidArgument(format(
+            "The rate `rate` must be positive, but got {}",
+            rate
+        )));
+    }
+
+    thread_local static std::mt19937 gen = generator();
+    std::exponential_distribution<T> dist(rate);
+    return dist(gen);
+}
+
 
 template<typename T = double> requires std::is_floating_point_v<T>
 class Exponential {
