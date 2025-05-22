@@ -1,0 +1,88 @@
+#include <numbers>
+#include <cmath>
+#include "random/stable.h"
+#include "random/utils.hpp"
+#include "random/uniform.hpp"
+#include "random/exponential.hpp"
+
+using std::numbers::pi;
+
+Result<bool> check_parameters(double alpha, double beta, double sigma) {
+    if (alpha <= 0 || alpha > 2) {
+        return Err(Error::InvalidArgument(format(
+            "The stable index `alpha` must be in (0, 2], but got {}",
+            alpha
+        )));
+    }
+
+    if (beta < -1 || beta > 1) {
+        return Err(Error::InvalidArgument(format(
+            "The skewness parameter `beta` must be in [-1, 1], but got {}",
+            beta
+        )));
+    }
+
+    if (sigma <= 0) {
+        return Err(Error::InvalidArgument(format(
+            "The scale parameter `sigma` must be positive, but got {}",
+            sigma
+        )));
+    }
+    return Ok(true);
+}
+
+double sample_standard(double alpha, double beta) {
+    double half_pi = pi / 2;
+    double tmp = beta * tan(alpha * half_pi);
+    double v = rand(-half_pi, half_pi).value();
+    double w = randexp().value();
+    double b = atan(tmp) / alpha;
+    double s = pow(1 + tmp * tmp, 1/(2*alpha));
+    double c1 = alpha * sin(v + b) / pow(cos(v), 1/alpha);
+    double c2 = pow(cos(v - alpha * (v+b))/w, (1-alpha)/alpha);
+    return s * c1 * c2;
+}
+
+double sample_standard(double beta) {
+    double half_pi = pi / 2;
+    double v = rand(-half_pi, half_pi).value();
+    double w = randexp().value();
+    double c1 = (half_pi + beta * v) * tan(v);
+    double tmp = (half_pi * w * cos(v)) / (half_pi + beta * v);
+    double c2 = log(tmp) * beta;
+    return 2 * (c1 - c2) / pi;
+}
+
+double sample(double alpha, double beta, double sigma, double mu) {
+    double r = sample_standard(alpha, beta);
+    return mu + sigma * r;
+}
+
+double sample(double beta, double sigma, double mu) {
+    double r = sample_standard(beta);
+    return sigma * r + mu + 2 * beta * sigma * sigma * log(sigma) / pi;
+}
+
+Result<double> rand_stable(double alpha, double beta, double sigma, double mu) {
+    if (auto res = check_parameters(alpha, beta, sigma); !res) return Err(res.error());
+    if (alpha == 1) {
+        return Ok(sample(beta, sigma, mu));
+    } else {
+        return Ok(sample(alpha, beta, sigma, mu));
+    }
+}
+
+Result<vector<double>> rand_stable(size_t n, double alpha, double beta, double sigma, double mu) {
+    if (auto res = check_parameters(alpha, beta, sigma); !res) return Err(res.error());
+    if (alpha == 1) {
+        auto sampler = [beta, sigma, mu]() {
+            return sample(beta, sigma, mu);
+        };
+        return Ok(parallel_generate<double>(n, sampler));
+    } else {
+        auto sampler = [alpha, beta, sigma, mu]() {
+            return sample(alpha, beta, sigma, mu);
+        };
+        return Ok(parallel_generate<double>(n, sampler));
+    }
+}
