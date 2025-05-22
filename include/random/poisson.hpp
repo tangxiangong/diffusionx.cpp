@@ -4,7 +4,7 @@
 #include <vector>
 #include <format>
 #include <random>
-#include "../../src/error.hpp"
+#include "../error.hpp"
 #include "random/utils.hpp"
 
 using std::vector;
