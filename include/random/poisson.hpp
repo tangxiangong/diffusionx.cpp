@@ -26,6 +26,21 @@ Result<vector<T> > rand_poisson(size_t n, double rate = 1.0) {
     return Ok(parallel_generate<T>(n, sampler));
 }
 
+template<typename T = unsigned int> requires std::is_unsigned_v<T>
+Result<vector<T> > rand_poisson(double rate = 1.0) {
+    if (rate <= 0) {
+        return Err(Error::InvalidArgument(format(
+            "The rate `rate` must be positive, but got {}",
+            rate
+        )));
+    }
+
+    thread_local std::mt19937 gen = generator();
+    std::poisson_distribution<T> dist(rate);
+    return dist(gen);
+}
+
+
 class Poisson {
     double m_rate = 1.0;
 
