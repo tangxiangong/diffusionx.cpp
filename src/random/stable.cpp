@@ -37,9 +37,9 @@ double sample_standard(double alpha, double beta) {
     double v = rand(-half_pi, half_pi).value();
     double w = randexp().value();
     double b = atan(tmp) / alpha;
-    double s = pow(1 + tmp * tmp, 1/(2*alpha));
-    double c1 = alpha * sin(v + b) / pow(cos(v), 1/alpha);
-    double c2 = pow(cos(v - alpha * (v+b))/w, (1-alpha)/alpha);
+    double s = pow(1 + tmp * tmp, 1 / (2 * alpha));
+    double c1 = alpha * sin(v + b) / pow(cos(v), 1 / alpha);
+    double c2 = pow(cos(v - alpha * (v + b)) / w, (1 - alpha) / alpha);
     return s * c1 * c2;
 }
 
@@ -72,7 +72,7 @@ Result<double> rand_stable(double alpha, double beta, double sigma, double mu) {
     }
 }
 
-Result<vector<double>> rand_stable(size_t n, double alpha, double beta, double sigma, double mu) {
+Result<vector<double> > rand_stable(size_t n, double alpha, double beta, double sigma, double mu) {
     if (auto res = check_parameters(alpha, beta, sigma); !res) return Err(res.error());
     if (alpha == 1) {
         auto sampler = [beta, sigma, mu]() {
@@ -85,4 +85,57 @@ Result<vector<double>> rand_stable(size_t n, double alpha, double beta, double s
         };
         return Ok(parallel_generate<double>(n, sampler));
     }
+}
+
+Result<double> rand_skew_stable(double alpha) {
+    if (alpha <= 0 || alpha >= 1) {
+        return Err(Error::InvalidArgument(format(
+            "The stable index `alpha` must be in (0, 1), but got {}",
+            alpha
+        )));
+    }
+    return Ok(sample(alpha, 1.0, 1.0, 0.0));
+}
+
+Result<vector<double> > rand_skew_stable(size_t n, double alpha) {
+    if (alpha <= 0 || alpha >= 1) {
+        return Err(Error::InvalidArgument(format(
+            "The stable index `alpha` must be in (0, 1), but got {}",
+            alpha
+        )));
+    }
+    auto sampler = [alpha]() {
+        return sample(alpha, 1.0, 1.0, 0.0);
+    };
+    return Ok(parallel_generate<double>(n, sampler));
+}
+
+Stable::Stable(double alpha, double beta, double sigma, double mu) {
+    if (auto res = check_parameters(alpha, beta, sigma); !res) {
+        throw std::invalid_argument(res.error().message);
+    }
+    m_alpha = alpha;
+    m_beta = beta;
+    m_sigma = sigma;
+    m_mu = mu;
+}
+
+double Stable::get_alpha() const {
+    return m_alpha;
+}
+
+double Stable::get_beta() const {
+    return m_beta;
+}
+
+double Stable::get_sigma() const {
+    return m_sigma;
+}
+
+double Stable::get_mu() const {
+    return m_mu;
+}
+
+Result<vector<double> > Stable::sample(size_t n) const {
+    return rand_stable(n, m_alpha, m_beta, m_sigma, m_mu);
 }
