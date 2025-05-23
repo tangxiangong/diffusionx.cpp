@@ -1,5 +1,5 @@
-#ifndef POISSON_H
-#define POISSON_H
+#ifndef POISSON_HPP
+#define POISSON_HPP
 
 #include <vector>
 #include <format>
@@ -37,7 +37,7 @@ Result<vector<T> > rand_poisson(double rate = 1.0) {
 
     thread_local std::mt19937 gen = generator();
     std::poisson_distribution<T> dist(rate);
-    return dist(gen);
+    return Ok(dist(gen));
 }
 
 
@@ -66,4 +66,4 @@ public:
     }
 };
 
-#endif //POISSON_H
+#endif //POISSON_HPP

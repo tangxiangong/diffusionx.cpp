@@ -1,5 +1,5 @@
-#ifndef NORMAL_H
-#define NORMAL_H
+#ifndef NORMAL_HPP
+#define NORMAL_HPP
 #include <vector>
 #include <format>
 #include <type_traits>
@@ -37,7 +37,7 @@ Result<vector<T> > randn(T mean = 0, T stddev = 1) {
 
     thread_local static std::mt19937 gen = generator();
     std::normal_distribution<T> dist(mean, stddev);
-    return dist(gen);
+    return Ok(dist(gen));
 }
 
 template<typename T> requires std::is_floating_point_v<T>
@@ -114,4 +114,4 @@ public:
     }
 };
 
-#endif //NORMAL_H
+#endif //NORMAL_HPP

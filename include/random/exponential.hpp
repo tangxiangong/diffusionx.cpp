@@ -1,5 +1,5 @@
-#ifndef EXPONENTIAL_H
-#define EXPONENTIAL_H
+#ifndef EXPONENTIAL_HPP
+#define EXPONENTIAL_HPP
 
 #include <vector>
 #include <format>
@@ -37,7 +37,7 @@ Result<T> randexp(T rate = 1.0) {
 
     thread_local static std::mt19937 gen = generator();
     std::exponential_distribution<T> dist(rate);
-    return dist(gen);
+    return Ok(dist(gen));
 }
 
 
@@ -66,4 +66,4 @@ public:
     }
 };
 
-#endif //EXPONENTIAL_H
+#endif //EXPONENTIAL_HPP

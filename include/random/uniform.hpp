@@ -1,5 +1,5 @@
-#ifndef UNIFORM_H
-#define UNIFORM_H
+#ifndef UNIFORM_HPP
+#define UNIFORM_HPP
 #include <vector>
 #include <format>
 #include <type_traits>
@@ -51,9 +51,9 @@ Result<T> rand(T a = 0, T b = 1) {
     } else {
         thread_local std::mt19937 gen = generator();
         std::uniform_real_distribution<T> dist{a, b};
-        return dist(gen);
+        return Ok(dist(gen));
     }
 }
 
 
-#endif //UNIFORM_H
+#endif //UNIFORM_HPP

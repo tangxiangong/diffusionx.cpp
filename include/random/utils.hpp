@@ -1,5 +1,5 @@
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef UTILS_HPP
+#define UTILS_HPP
 
 #include <vector>
 #include <thread>
@@ -57,4 +57,4 @@ std::vector<T> parallel_generate(size_t n, F sampler) {
     return result;
 }
 
-#endif // UTILS_H
+#endif // UTILS_HPP

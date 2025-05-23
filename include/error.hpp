@@ -1,5 +1,5 @@
-#ifndef ERROR_H
-#define ERROR_H
+#ifndef ERROR_HPP
+#define ERROR_HPP
 
 #include <string>
 #include <expected>
@@ -41,4 +41,4 @@ T unwrap(const Result<T> &result) {
     return *result;
 }
 
-#endif //ERROR_H
+#endif //ERROR_HPP
