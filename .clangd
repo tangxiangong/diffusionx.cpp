@@ -1,0 +1,44 @@
+CompileFlags:
+  Compiler: /opt/homebrew/opt/llvm/bin/clang++
+  Add:
+    - -std=c++23
+    - -I./src
+    - -I./include
+    - -fmodules
+    - -fbuiltin-module-map
+    - -fprebuilt-module-path=./build
+    - -fmodules-cache-path=./build/.clangd-cache
+    - -resource-dir=/opt/homebrew/Cellar/llvm/20.1.5/lib/clang/20
+    - -isystem=/opt/homebrew/opt/llvm/include/c++/v1
+    - -Wno-unknown-warning-option
+    - -Wno-module-import-in-extern-c
+    - -Wno-everything
+  Remove: 
+    - -W*
+
+Index:
+  Background: Build
+
+Diagnostics:
+  Suppress:
+    - "use of undeclared identifier"
+    - "no member named"
+    - "must be declared before it is used"
+    - "Missing '#include"
+    - "declaration of .* must be imported from module"
+    - "Could not build module"
+    - "module_unimported_use"
+  ClangTidy:
+    Add: []
+    Remove: ["*"]
+  UnusedIncludes: None
+  MissingIncludes: None
+
+Completion:
+  AllScopes: Yes
+
+InlayHints:
+  Enabled: No
+
+Hover:
+  ShowAKA: Yes 
