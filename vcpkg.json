@@ -2,8 +2,8 @@
   "name": "diffusionx",
   "version": "0.1.0",
   "description": "A modern C++23 random number generation library using C++20 modules, supporting various probability distributions",
-  "homepage": "https://github.com/your-username/diffusionx-cpp",
-  "documentation": "https://github.com/your-username/diffusionx-cpp/blob/main/README.md",
+  "homepage": "https://github.com/tangxiangong/diffusionx-cpp",
+  "documentation": "https://github.com/tangxiangong/diffusionx-cpp/blob/main/README.md",
   "license": "MIT",
   "supports": "!(uwp | arm)",
   "dependencies": [
