@@ -1,19 +1,17 @@
 #include <print>
 #include <chrono>
 
-import diffusionx;
+import diffusionx.random;
 
 int main() {
-    size_t len = 10;
+    size_t len = 3;
     {
         auto normal = randn<float>(len);
         if (!normal) {
             std::println("error: {}", normal.error().message);
             return 1;
         }
-        for (const auto &val: normal.value()) {
-            std::println("{}", val);
-        }
+        std::println("randn: {}", normal.value());
     }
 
     {
@@ -22,10 +20,7 @@ int main() {
             std::println("error: {}", exp.error().message);
             return 1;
         }
-
-        for (const auto &val: exp.value()) {
-            std::println("{}", val);
-        }
+        std::println("randexp: {}", exp.value());
     }
 
     {
@@ -34,10 +29,7 @@ int main() {
             std::println("error: {}", poisson.error().message);
             return 1;
         }
-
-        for (const auto &val: poisson.value()) {
-            std::println("{}", val);
-        }
+        std::println("rand_poisson: {}", poisson.value());
     }
     return 0;
 }
