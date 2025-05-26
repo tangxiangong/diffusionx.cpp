@@ -1,8 +1,11 @@
+# 设置策略以允许空的 include 文件夹（因为这是一个基于模块的库）
+set(VCPKG_POLICY_EMPTY_INCLUDE_FOLDER enabled)
+
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
-    REPO tangxiangong/diffusionx-cpp
+    REPO tangxiangong/diffusionx.cpp
     REF v0.1.0
-    SHA512 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+    SHA512 eefaa7335e6233f955d33a905d300083ed9b20196365a880fe18776bc925d1f4aa5f970d4aaafdbe1bb414918c9b49ca56d218b477aed2381b8f90e1df63c23c
     HEAD_REF main
 )
 
@@ -11,8 +14,22 @@ if(VCPKG_TARGET_IS_WINDOWS)
     if(VCPKG_PLATFORM_TOOLSET MATCHES "v14[0-2]")
         message(FATAL_ERROR "diffusionx requires Visual Studio 2022 (v143) or later for C++20 modules support")
     endif()
-elseif(VCPKG_TARGET_IS_LINUX OR VCPKG_TARGET_IS_OSX)
-    # 对于 Linux/macOS，假设使用足够新的编译器
+elseif(VCPKG_TARGET_IS_OSX)
+    # 在 macOS 上，检查是否有 Homebrew LLVM
+    if(NOT EXISTS "/opt/homebrew/opt/llvm/bin/clang++")
+        message(WARNING 
+            "Homebrew LLVM not found. Apple Clang does not support C++20 modules. "
+            "The library will be built with limited functionality. "
+            "To install Homebrew LLVM: brew install llvm"
+        )
+        # 如果没有 Homebrew LLVM，移除编译器设置，使用系统默认编译器
+        list(REMOVE_ITEM VCPKG_CMAKE_CONFIGURE_OPTIONS 
+            "-DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++"
+            "-DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang"
+        )
+    endif()
+elseif(VCPKG_TARGET_IS_LINUX)
+    # 对于 Linux，假设使用足够新的编译器
     # 实际部署时可能需要更严格的检查
 endif()
 
@@ -34,6 +51,8 @@ vcpkg_cmake_configure(
         -DCMAKE_CXX_STANDARD=23
         -DCMAKE_CXX_STANDARD_REQUIRED=ON
         -DCMAKE_CXX_EXTENSIONS=OFF
+        -DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++
+        -DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang
 )
 
 # 构建
