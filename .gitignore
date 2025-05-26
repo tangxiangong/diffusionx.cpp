@@ -5,3 +5,11 @@ build/*
 bin/*
 lib/*
 compile_commands.json
+
+# vcpkg
+vcpkg_installed/
+.vcpkg-root
+vcpkg-manifest-install.log
+
+# 测试项目构建目录
+test_vcpkg/build/
