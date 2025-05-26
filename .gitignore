@@ -4,3 +4,4 @@ build/*
 .cache/*
 bin/*
 lib/*
+compile_commands.json
