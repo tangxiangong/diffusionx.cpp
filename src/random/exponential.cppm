@@ -1,16 +1,19 @@
-#ifndef EXPONENTIAL_HPP
-#define EXPONENTIAL_HPP
+module;
 
 #include <vector>
 #include <format>
 #include <type_traits>
-#include "../error.hpp"
-#include "random/utils.hpp"
+#include <random>
+
+export module diffusionx.random.exponential;
+
+import diffusionx.error;
+import diffusionx.random.utils;
 
 using std::vector;
 using std::format;
 
-template<typename T = double> requires std::is_floating_point_v<T>
+export template<typename T = double> requires std::is_floating_point_v<T>
 Result<vector<T> > randexp(size_t n, T rate = 1.0) {
     if (rate <= 0) {
         return Err(Error::InvalidArgument(format(
@@ -26,7 +29,7 @@ Result<vector<T> > randexp(size_t n, T rate = 1.0) {
     return Ok(parallel_generate<T>(n, sampler));
 }
 
-template<typename T = double> requires std::is_floating_point_v<T>
+export template<typename T = double> requires std::is_floating_point_v<T>
 Result<T> randexp(T rate = 1.0) {
     if (rate <= 0) {
         return Err(Error::InvalidArgument(format(
@@ -34,14 +37,12 @@ Result<T> randexp(T rate = 1.0) {
             rate
         )));
     }
-
     thread_local static std::mt19937 gen = generator();
     std::exponential_distribution<T> dist(rate);
     return Ok(dist(gen));
 }
 
-
-template<typename T = double> requires std::is_floating_point_v<T>
+export template<typename T = double> requires std::is_floating_point_v<T>
 class Exponential {
     T m_rate = 1.0;
 
@@ -65,5 +66,3 @@ public:
         return randexp(n, m_rate);
     }
 };
-
-#endif //EXPONENTIAL_HPP

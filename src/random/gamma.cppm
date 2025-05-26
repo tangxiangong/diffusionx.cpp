@@ -1,16 +1,19 @@
-#ifndef GAMMA_HPP
-#define GAMMA_HPP
+module;
 
 #include <vector>
 #include <format>
 #include <type_traits>
-#include "../error.hpp"
-#include "random/utils.hpp"
+#include <random>
+
+export module diffusionx.random.gamma;
+
+import diffusionx.error;
+import diffusionx.random.utils;
 
 using std::vector;
 using std::format;
 
-template<typename T = double> requires std::is_floating_point_v<T>
+export template<typename T = double> requires std::is_floating_point_v<T>
 Result<vector<T> > rand_gamma(size_t n, T shape, T scale) {
     if (shape <= 0) {
         return Err(Error::InvalidArgument(format(
@@ -34,8 +37,8 @@ Result<vector<T> > rand_gamma(size_t n, T shape, T scale) {
     return Ok(parallel_generate<T>(n, sampler));
 }
 
-template<typename T = double> requires std::is_floating_point_v<T>
-Result<vector<T> > rand_gamma(T shape, T scale) {
+export template<typename T = double> requires std::is_floating_point_v<T>
+Result<T> rand_gamma(T shape, T scale) {
     if (shape <= 0) {
         return Err(Error::InvalidArgument(format(
             "The shape parameter `shape` must be positive, but got {}",
@@ -50,14 +53,12 @@ Result<vector<T> > rand_gamma(T shape, T scale) {
         )));
     }
 
-
     thread_local static std::mt19937 gen = generator();
     std::gamma_distribution<T> dist(shape, scale);
     return Ok(dist(gen));
 }
 
-
-template<typename T = double> requires std::is_floating_point_v<T>
+export template<typename T = double> requires std::is_floating_point_v<T>
 class Gamma {
     T m_shape;
     T m_scale;
@@ -93,6 +94,3 @@ public:
         return rand_gamma(n, m_shape, m_scale);
     }
 };
-
-
-#endif //GAMMA_HPP

@@ -1,16 +1,18 @@
-#ifndef POISSON_HPP
-#define POISSON_HPP
+module;
 
 #include <vector>
 #include <format>
 #include <random>
-#include "../error.hpp"
-#include "random/utils.hpp"
+
+export module diffusionx.random.poisson;
+
+import diffusionx.error;
+import diffusionx.random.utils;
 
 using std::vector;
 using std::format;
 
-template<typename T = unsigned int> requires std::is_unsigned_v<T>
+export template<typename T = unsigned int> requires std::is_unsigned_v<T>
 Result<vector<T> > rand_poisson(size_t n, double rate = 1.0) {
     if (rate <= 0) {
         return Err(Error::InvalidArgument(format(
@@ -26,22 +28,21 @@ Result<vector<T> > rand_poisson(size_t n, double rate = 1.0) {
     return Ok(parallel_generate<T>(n, sampler));
 }
 
-template<typename T = unsigned int> requires std::is_unsigned_v<T>
-Result<vector<T> > rand_poisson(double rate = 1.0) {
+export template<typename T = unsigned int> requires std::is_unsigned_v<T>
+Result<T> rand_poisson(double rate = 1.0) {
     if (rate <= 0) {
         return Err(Error::InvalidArgument(format(
             "The rate `rate` must be positive, but got {}",
             rate
         )));
     }
-
-    thread_local std::mt19937 gen = generator();
+    thread_local static std::mt19937 gen = generator();
     std::poisson_distribution<T> dist(rate);
     return Ok(dist(gen));
 }
 
 
-class Poisson {
+export class Poisson {
     double m_rate = 1.0;
 
 public:
@@ -65,5 +66,3 @@ public:
         return rand_poisson<T>(n, m_rate);
     }
 };
-
-#endif //POISSON_HPP

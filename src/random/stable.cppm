@@ -1,11 +1,20 @@
+module;
+
 #include <numbers>
 #include <cmath>
-#include "random/stable.h"
-#include "random/utils.hpp"
-#include "random/uniform.hpp"
-#include "random/exponential.hpp"
+#include <format>
+#include <vector>
+
+export module diffusionx.random.stable;
+
+import diffusionx.error;
+import diffusionx.random.utils;
+import diffusionx.random.uniform;
+import diffusionx.random.exponential;
 
 using std::numbers::pi;
+using std::vector;
+using std::format;
 
 Result<bool> check_parameters(double alpha, double beta, double sigma) {
     if (alpha <= 0 || alpha > 2) {
@@ -63,7 +72,7 @@ double sample(double beta, double sigma, double mu) {
     return sigma * r + mu + 2 * beta * sigma * sigma * log(sigma) / pi;
 }
 
-Result<double> rand_stable(double alpha, double beta, double sigma, double mu) {
+export Result<double> rand_stable(double alpha, double beta = 0.0, double sigma = 1.0, double mu = 0.0) {
     if (auto res = check_parameters(alpha, beta, sigma); !res) return Err(res.error());
     if (alpha == 1) {
         return Ok(sample(beta, sigma, mu));
@@ -72,7 +81,7 @@ Result<double> rand_stable(double alpha, double beta, double sigma, double mu) {
     }
 }
 
-Result<vector<double> > rand_stable(size_t n, double alpha, double beta, double sigma, double mu) {
+export Result<vector<double> > rand_stable(size_t n, double alpha, double beta = 0.0, double sigma = 1.0, double mu = 0.0) {
     if (auto res = check_parameters(alpha, beta, sigma); !res) return Err(res.error());
     if (alpha == 1) {
         auto sampler = [beta, sigma, mu]() {
@@ -87,7 +96,7 @@ Result<vector<double> > rand_stable(size_t n, double alpha, double beta, double 
     }
 }
 
-Result<double> rand_skew_stable(double alpha) {
+export Result<double> rand_skew_stable(double alpha) {
     if (alpha <= 0 || alpha >= 1) {
         return Err(Error::InvalidArgument(format(
             "The stable index `alpha` must be in (0, 1), but got {}",
@@ -97,7 +106,7 @@ Result<double> rand_skew_stable(double alpha) {
     return Ok(sample(alpha, 1.0, 1.0, 0.0));
 }
 
-Result<vector<double> > rand_skew_stable(size_t n, double alpha) {
+export Result<vector<double> > rand_skew_stable(size_t n, double alpha) {
     if (alpha <= 0 || alpha >= 1) {
         return Err(Error::InvalidArgument(format(
             "The stable index `alpha` must be in (0, 1), but got {}",
@@ -109,6 +118,28 @@ Result<vector<double> > rand_skew_stable(size_t n, double alpha) {
     };
     return Ok(parallel_generate<double>(n, sampler));
 }
+
+export class Stable {
+    double m_alpha;
+    double m_beta;
+    double m_sigma;
+    double m_mu;
+
+public:
+    Stable() = default;
+
+    explicit Stable(double alpha, double beta = 0.0, double sigma = 1.0, double mu = 0.0);
+
+    [[nodiscard]] double get_alpha() const;
+
+    [[nodiscard]] double get_beta() const;
+
+    [[nodiscard]] double get_sigma() const;
+
+    [[nodiscard]] double get_mu() const;
+
+    [[nodiscard]] Result<vector<double>> sample(size_t n) const;
+};
 
 Stable::Stable(double alpha, double beta, double sigma, double mu) {
     if (auto res = check_parameters(alpha, beta, sigma); !res) {

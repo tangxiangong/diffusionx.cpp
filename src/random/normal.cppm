@@ -1,16 +1,20 @@
-#ifndef NORMAL_HPP
-#define NORMAL_HPP
+module;
+
 #include <vector>
 #include <format>
 #include <type_traits>
-#include "../error.hpp"
-#include "random/utils.hpp"
+#include <random>
+
+export module diffusionx.random.normal;
+
+import diffusionx.error;
+import diffusionx.random.utils;
 
 using std::format;
 using std::vector;
 
 
-template<typename T = double> requires std::is_floating_point_v<T>
+export template<typename T = double> requires std::is_floating_point_v<T>
 Result<vector<T> > randn(size_t n, T mean = 0, T stddev = 1) {
     if (stddev <= 0) {
         return Err(Error::InvalidArgument(format(
@@ -26,21 +30,20 @@ Result<vector<T> > randn(size_t n, T mean = 0, T stddev = 1) {
     return Ok(parallel_generate<T>(n, sampler));
 }
 
-template<typename T = double> requires std::is_floating_point_v<T>
-Result<vector<T> > randn(T mean = 0, T stddev = 1) {
+export template<typename T = double> requires std::is_floating_point_v<T>
+Result<T> randn(T mean = 0, T stddev = 1) {
     if (stddev <= 0) {
         return Err(Error::InvalidArgument(format(
             "The standard deviation `stddev` must be positive, but got {}",
             stddev
         )));
     }
-
     thread_local static std::mt19937 gen = generator();
     std::normal_distribution<T> dist(mean, stddev);
     return Ok(dist(gen));
 }
 
-template<typename T> requires std::is_floating_point_v<T>
+export template<typename T> requires std::is_floating_point_v<T>
 class Normal {
     T m_mean = 0.0;
     T m_stddev = 1.0;
@@ -113,5 +116,3 @@ public:
         return a + (-rhs);
     }
 };
-
-#endif //NORMAL_HPP
