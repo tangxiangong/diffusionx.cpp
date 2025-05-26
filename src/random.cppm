@@ -6,4 +6,4 @@ export import diffusionx.random.exponential;
 export import diffusionx.random.normal;
 export import diffusionx.random.gamma;
 export import diffusionx.random.poisson;
-export import diffusionx.random.stable; 
+export import diffusionx.random.stable;

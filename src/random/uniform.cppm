@@ -1,25 +1,26 @@
 module;
 
-#include <vector>
 #include <format>
-#include <type_traits>
 #include <random>
+#include <type_traits>
+#include <vector>
 
 export module diffusionx.random.uniform;
 
 import diffusionx.error;
 import diffusionx.random.utils;
 
-using std::vector;
 using std::format;
+using std::vector;
 
-export template<typename T = double> requires std::is_floating_point_v<T> || std::is_integral_v<T>
-Result<vector<T> > rand(size_t n, T a = 0, T b = 1) {
+export template <typename T = double>
+    requires std::is_floating_point_v<T> || std::is_integral_v<T>
+auto rand(size_t n, T a = 0, T b = 1) -> Result<vector<T>> {
     if (a > b) {
-        return Err(Error::InvalidArgument(format(
-            "The lower bound `a` must be less than the upper bound `b`, but got {} > {}",
-            a, b
-        )));
+        return Err(Error::InvalidArgument(
+            format("The lower bound `a` must be less than "
+                   "the upper bound `b`, but got {} > {}",
+                   a, b)));
     }
 
     if constexpr (std::is_integral_v<T>) {
@@ -39,13 +40,14 @@ Result<vector<T> > rand(size_t n, T a = 0, T b = 1) {
     }
 }
 
-export template<typename T = double> requires std::is_floating_point_v<T> || std::is_integral_v<T>
-Result<T> rand(T a = 0, T b = 1) {
+export template <typename T = double>
+    requires std::is_floating_point_v<T> || std::is_integral_v<T>
+auto rand(T a = 0, T b = 1) -> Result<T> {
     if (a > b) {
-        return Err(Error::InvalidArgument(format(
-            "The lower bound `a` must be less than the upper bound `b`, but got {} > {}",
-            a, b
-        )));
+        return Err(Error::InvalidArgument(
+            format("The lower bound `a` must be less than "
+                   "the upper bound `b`, but got {} > {}",
+                   a, b)));
     }
 
     if constexpr (std::is_integral_v<T>) {

@@ -1,8 +1,8 @@
 module;
 
-#include <string>
 #include <expected>
 #include <optional>
+#include <string>
 #include <utility>
 
 export module diffusionx.error;
@@ -10,34 +10,36 @@ export module diffusionx.error;
 export struct Error {
     std::string message;
 
-    explicit Error(std::string msg) : message(std::move(msg)) {
-    }
+    explicit Error(std::string msg) : message(std::move(msg)) {}
 
-    static Error InvalidArgument(const std::string &msg) {
+    static auto InvalidArgument(const std::string &msg) -> Error {
         return Error("Invalid argument: " + msg);
     }
 };
 
-export template<typename T>
+export template <typename T>
 using Result = std::expected<T, Error>;
 
-export inline std::unexpected<Error> Err(const Error &e) {
+export template <typename T>
+using Option = std::optional<T>;
+
+export inline auto Err(const Error &e) -> std::unexpected<Error> {
     return std::unexpected<Error>(e);
 }
 
-export template<typename T>
-std::expected<T, Error> Ok(T &&value) {
+export template <typename T>
+auto Ok(T &&value) -> std::expected<T, Error> {
     return std::expected<T, Error>(std::forward<T>(value));
 }
 
-export template<typename T>
-std::optional<T> Some(T &&value) {
+export template <typename T>
+auto Some(T &&value) -> std::optional<T> {
     return std::optional<T>(std::forward<T>(value));
 }
 
 export using None = std::nullopt_t;
 
-export template<typename T>
-T unwrap(const Result<T> &result) {
+export template <typename T>
+auto unwrap(const Result<T> &result) -> T {
     return *result;
 }
