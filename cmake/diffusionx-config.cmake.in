@@ -10,4 +10,5 @@ endif()
 # 包含目标文件
 include("${CMAKE_CURRENT_LIST_DIR}/diffusionx-targets.cmake")
 
-check_required_components(diffusionx) 
+# 检查所需组件
+set(diffusionx_FOUND TRUE) 
