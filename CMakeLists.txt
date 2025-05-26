@@ -46,20 +46,25 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 # 设置库输出目录（跨平台）
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+# 如果不是通过 vcpkg 构建，使用项目本地目录
+if(NOT VCPKG_TOOLCHAIN)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+endif()
 
 # Windows 特定配置
 if(WIN32)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-    # 为不同配置类型设置输出目录
-    foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
-        string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/bin)
-        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/lib)
-        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/lib)
-    endforeach()
+    # 为不同配置类型设置输出目录（仅在非 vcpkg 构建时）
+    if(NOT VCPKG_TOOLCHAIN)
+        foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+            string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
+            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/bin)
+            set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/lib)
+            set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/lib)
+        endforeach()
+    endif()
 endif()
 
 # 收集模块文件
@@ -124,13 +129,16 @@ endif()
 add_library(diffusionx INTERFACE)
 target_link_libraries(diffusionx INTERFACE diffusionx_modules)
 
+# 添加构建选项
+option(BUILD_EXAMPLES "Build example programs" ON)
+
 # 添加示例程序子目录
-if(EXISTS "${PROJECT_SOURCE_DIR}/examples/CMakeLists.txt")
+if(BUILD_EXAMPLES AND EXISTS "${PROJECT_SOURCE_DIR}/examples/CMakeLists.txt")
     add_subdirectory(examples)
 endif()
 
-# 自动复制 compile_commands.json 到项目根目录（跨平台）
-if(CMAKE_EXPORT_COMPILE_COMMANDS)
+# 自动复制 compile_commands.json 到项目根目录（跨平台，仅在非 vcpkg 构建时）
+if(CMAKE_EXPORT_COMPILE_COMMANDS AND NOT VCPKG_TOOLCHAIN)
     add_custom_command(
         TARGET diffusionx_modules POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -169,7 +177,7 @@ install(EXPORT diffusionx-targets
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}/diffusionx-config-version.cmake"
-    VERSION 1.0.0
+    VERSION 0.1.0
     COMPATIBILITY AnyNewerVersion
 )
 
