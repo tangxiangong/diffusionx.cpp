@@ -9,11 +9,34 @@ export module diffusionx.random.utils;
 
 using std::vector;
 
+/**
+ * @brief Creates a random number generator seeded with a random device
+ * @return A properly seeded Mersenne Twister generator
+ * 
+ * This function creates a new std::mt19937 generator seeded with a hardware
+ * random device. Each call returns a new generator instance.
+ */
 export inline auto generator() -> std::mt19937 {
     std::random_device rd;
     return std::mt19937(rd());
 }
 
+/**
+ * @brief Generates random values in parallel using multiple threads
+ * @tparam T The type of values to generate
+ * @tparam F The type of the sampling function
+ * @param n The number of values to generate
+ * @param sampler A callable that generates a single random value of type T
+ * @return A vector containing n randomly generated values
+ * 
+ * This function distributes the work of generating random values across
+ * multiple threads for improved performance. The number of threads used
+ * is determined by std::thread::hardware_concurrency(), with fallbacks
+ * for edge cases.
+ * 
+ * @note The sampler function should be thread-safe or use thread-local storage
+ * @note For small values of n, fewer threads may be used for efficiency
+ */
 export template <typename T, typename F>
 auto parallel_generate(size_t n, F sampler) -> vector<T> {
     vector<T> result(n);

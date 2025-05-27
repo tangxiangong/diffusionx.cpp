@@ -13,6 +13,21 @@ import diffusionx.random.utils;
 using std::format;
 using std::vector;
 
+/**
+ * @brief Generates a vector of uniformly distributed random values
+ * @tparam T The numeric type (floating-point or integral)
+ * @param n The number of values to generate
+ * @param a The lower bound of the distribution (inclusive for integers, inclusive for floats)
+ * @param b The upper bound of the distribution (inclusive for integers, exclusive for floats)
+ * @return Result containing a vector of n uniformly distributed values, or an Error
+ * 
+ * This function generates n random values uniformly distributed between a and b.
+ * For integral types, both bounds are inclusive. For floating-point types,
+ * the lower bound is inclusive and the upper bound is exclusive.
+ * 
+ * @note Uses parallel generation for improved performance
+ * @note Each thread uses its own thread-local generator for thread safety
+ */
 export template <typename T = double>
     requires std::is_floating_point_v<T> || std::is_integral_v<T>
 auto rand(size_t n, T a = 0, T b = 1) -> Result<vector<T>> {
@@ -40,6 +55,19 @@ auto rand(size_t n, T a = 0, T b = 1) -> Result<vector<T>> {
     }
 }
 
+/**
+ * @brief Generates a single uniformly distributed random value
+ * @tparam T The numeric type (floating-point or integral)
+ * @param a The lower bound of the distribution (inclusive for integers, inclusive for floats)
+ * @param b The upper bound of the distribution (inclusive for integers, exclusive for floats)
+ * @return Result containing a uniformly distributed value, or an Error
+ * 
+ * This function generates a single random value uniformly distributed between a and b.
+ * For integral types, both bounds are inclusive. For floating-point types,
+ * the lower bound is inclusive and the upper bound is exclusive.
+ * 
+ * @note Uses thread-local generator for thread safety
+ */
 export template <typename T = double>
     requires std::is_floating_point_v<T> || std::is_integral_v<T>
 auto rand(T a = 0, T b = 1) -> Result<T> {
