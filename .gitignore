@@ -15,3 +15,7 @@ vcpkg-manifest-install.log
 test_vcpkg/build/
 
 .xmake
+
+.cursor
+test_vcpkg/
+vcpkg-config/
