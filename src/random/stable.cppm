@@ -1,11 +1,9 @@
 module;
 
 #include <cmath>
-#include <cstddef>
 #include <format>
 #include <numbers>
 #include <stdexcept>
-#include <string>
 #include <vector>
 
 export module diffusionx.random.stable;
@@ -63,9 +61,9 @@ auto sample_standard(double alpha, double beta) -> double {
     double v = rand(-half_pi, half_pi).value();
     double w = randexp().value();
     double b = atan(tmp) / alpha;
-    double s = pow(1 + tmp * tmp, 1 / (2 * alpha));
+    double s = pow(1 + (tmp * tmp), 1 / (2 * alpha));
     double c1 = alpha * sin(v + b) / pow(cos(v), 1 / alpha);
-    double c2 = pow(cos(v - alpha * (v + b)) / w, (1 - alpha) / alpha);
+    double c2 = pow(cos(v - (alpha * (v + b))) / w, (1 - alpha) / alpha);
     return s * c1 * c2;
 }
 
@@ -82,7 +80,7 @@ auto sample_standard(double beta) -> double {
     double v = rand(-half_pi, half_pi).value();
     double w = randexp().value();
     double c1 = (half_pi + beta * v) * tan(v);
-    double tmp = (half_pi * w * cos(v)) / (half_pi + beta * v);
+    double tmp = half_pi * w * cos(v) / (half_pi + beta * v);
     double c2 = log(tmp) * beta;
     return 2 * (c1 - c2) / pi;
 }
@@ -97,7 +95,7 @@ auto sample_standard(double beta) -> double {
  */
 auto sample(double alpha, double beta, double sigma, double mu) -> double {
     double r = sample_standard(alpha, beta);
-    return mu + sigma * r;
+    return mu + (sigma * r);
 }
 
 /**
@@ -109,7 +107,7 @@ auto sample(double alpha, double beta, double sigma, double mu) -> double {
  */
 auto sample(double beta, double sigma, double mu) -> double {
     double r = sample_standard(beta);
-    return sigma * r + mu + 2 * beta * sigma * sigma * log(sigma) / pi;
+    return (sigma * r) + mu + (2 * beta * sigma * sigma * log(sigma) / pi);
 }
 
 /**
@@ -131,9 +129,8 @@ export auto rand_stable(double alpha, double beta = 0.0, double sigma = 1.0,
         return Err(res.error());
     if (alpha == 1) {
         return Ok(sample(beta, sigma, mu));
-    } else {
-        return Ok(sample(alpha, beta, sigma, mu));
     }
+    return Ok(sample(alpha, beta, sigma, mu));
 }
 
 /**
@@ -150,18 +147,17 @@ export auto rand_stable(double alpha, double beta = 0.0, double sigma = 1.0,
  */
 export auto rand_stable(size_t n, double alpha, double beta = 0.0,
                         double sigma = 1.0, double mu = 0.0)
-    -> Result<vector<double>> {
+    -> Result<vector<double> > {
     if (auto res = check_parameters(alpha, beta, sigma); !res)
         return Err(res.error());
     if (alpha == 1) {
         auto sampler = [beta, sigma, mu]() { return sample(beta, sigma, mu); };
         return Ok(parallel_generate<double>(n, sampler));
-    } else {
-        auto sampler = [alpha, beta, sigma, mu]() {
-            return sample(alpha, beta, sigma, mu);
-        };
-        return Ok(parallel_generate<double>(n, sampler));
     }
+    auto sampler = [alpha, beta, sigma, mu]() {
+        return sample(alpha, beta, sigma, mu);
+    };
+    return Ok(parallel_generate<double>(n, sampler));
 }
 
 /**
@@ -190,7 +186,7 @@ export auto rand_skew_stable(double alpha) -> Result<double> {
  * This function generates n random values from a maximally skewed stable
  * distribution (β = 1) with unit scale and zero location.
  */
-export auto rand_skew_stable(size_t n, double alpha) -> Result<vector<double>> {
+export auto rand_skew_stable(size_t n, double alpha) -> Result<vector<double> > {
     if (alpha <= 0 || alpha >= 1) {
         return Err(Error::InvalidArgument(std::format(
             "The stable index `alpha` must be in (0, 1), but got {}", alpha)));
@@ -209,11 +205,11 @@ export auto rand_skew_stable(size_t n, double alpha) -> Result<vector<double>> {
  */
 export class Stable {
     double m_alpha; ///< The stability parameter (α ∈ (0, 2])
-    double m_beta;  ///< The skewness parameter (β ∈ [-1, 1])
+    double m_beta; ///< The skewness parameter (β ∈ [-1, 1])
     double m_sigma; ///< The scale parameter (σ > 0)
-    double m_mu;    ///< The location parameter (μ ∈ ℝ)
+    double m_mu; ///< The location parameter (μ ∈ ℝ)
 
-   public:
+public:
     /**
      * @brief Default constructor (parameters must be set before use)
      */
@@ -262,7 +258,7 @@ export class Stable {
      * This method generates n independent samples from the stable distribution
      * using the stored parameters.
      */
-    [[nodiscard]] auto sample(size_t n) const -> Result<vector<double>>;
+    [[nodiscard]] auto sample(size_t n) const -> Result<vector<double> >;
 };
 
 Stable::Stable(double alpha, double beta, double sigma, double mu) {
@@ -283,6 +279,6 @@ auto Stable::get_sigma() const -> double { return m_sigma; }
 
 auto Stable::get_mu() const -> double { return m_mu; }
 
-auto Stable::sample(size_t n) const -> Result<vector<double>> {
+auto Stable::sample(size_t n) const -> Result<vector<double> > {
     return rand_stable(n, m_alpha, m_beta, m_sigma, m_mu);
 }

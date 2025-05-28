@@ -27,9 +27,9 @@ using std::vector;
  * @note Uses parallel generation for improved performance
  * @note Each thread uses its own thread-local generator for thread safety
  */
-export template <typename T = double>
+export template<typename T = double>
     requires std::is_floating_point_v<T>
-auto randexp(size_t n, T rate = 1.0) -> Result<vector<T>> {
+auto randexp(size_t n, T rate = 1.0) -> Result<vector<T> > {
     if (rate <= 0) {
         return Err(Error::InvalidArgument(
             format("The rate `rate` must be positive, but got {}", rate)));
@@ -54,7 +54,7 @@ auto randexp(size_t n, T rate = 1.0) -> Result<vector<T>> {
  * 
  * @note Uses thread-local generator for thread safety
  */
-export template <typename T = double>
+export template<typename T = double>
     requires std::is_floating_point_v<T>
 auto randexp(T rate = 1.0) -> Result<T> {
     if (rate <= 0) {
@@ -75,12 +75,12 @@ auto randexp(T rate = 1.0) -> Result<T> {
  * The exponential distribution is commonly used to model waiting times between
  * events in a Poisson process.
  */
-export template <typename T = double>
+export template<typename T = double>
     requires std::is_floating_point_v<T>
 class Exponential {
     T m_rate = 1.0; ///< The rate parameter (λ) of the distribution
 
-   public:
+public:
     /**
      * @brief Default constructor creating an exponential distribution with rate = 1.0
      */
@@ -113,7 +113,7 @@ class Exponential {
      * This method generates n independent samples from the exponential distribution
      * using the stored rate parameter.
      */
-    [[nodiscard]] auto sample(size_t n) const -> Result<vector<T>> {
+    [[nodiscard]] auto sample(size_t n) const -> Result<vector<T> > {
         return randexp(n, m_rate);
     }
 };

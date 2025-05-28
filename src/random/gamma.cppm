@@ -28,9 +28,9 @@ using std::vector;
  * @note Uses parallel generation for improved performance
  * @note Each thread uses its own thread-local generator for thread safety
  */
-export template <typename T = double>
+export template<typename T = double>
     requires std::is_floating_point_v<T>
-auto rand_gamma(size_t n, T shape, T scale) -> Result<vector<T>> {
+auto rand_gamma(size_t n, T shape, T scale) -> Result<vector<T> > {
     if (shape <= 0) {
         return Err(Error::InvalidArgument(
             format("The shape parameter `shape` must be positive, but got {}",
@@ -64,7 +64,7 @@ auto rand_gamma(size_t n, T shape, T scale) -> Result<vector<T>> {
  * 
  * @note Uses thread-local generator for thread safety
  */
-export template <typename T = double>
+export template<typename T = double>
     requires std::is_floating_point_v<T>
 auto rand_gamma(T shape, T scale) -> Result<T> {
     if (shape <= 0) {
@@ -93,13 +93,13 @@ auto rand_gamma(T shape, T scale) -> Result<T> {
  * The gamma distribution is a versatile continuous probability distribution that
  * generalizes the exponential distribution and is commonly used in Bayesian statistics.
  */
-export template <typename T = double>
+export template<typename T = double>
     requires std::is_floating_point_v<T>
 class Gamma {
     T m_shape; ///< The shape parameter (α) of the distribution
     T m_scale; ///< The scale parameter (β) of the distribution
 
-   public:
+public:
     /**
      * @brief Default constructor (parameters must be set before use)
      */
@@ -145,7 +145,7 @@ class Gamma {
      * This method generates n independent samples from the gamma distribution
      * using the stored shape and scale parameters.
      */
-    [[nodiscard]] auto sample(size_t n) const -> Result<vector<T>> {
+    [[nodiscard]] auto sample(size_t n) const -> Result<vector<T> > {
         return rand_gamma(n, m_shape, m_scale);
     }
 };

@@ -20,7 +20,8 @@ export struct Error {
      * @brief Constructs an Error with the given message
      * @param msg The error message
      */
-    explicit Error(std::string msg) : message(std::move(msg)) {}
+    explicit Error(std::string msg) : message(std::move(msg)) {
+    }
 
     /**
      * @brief Creates an invalid argument error
@@ -48,7 +49,7 @@ export struct Error {
  * This represents a computation that can either succeed with a value of type T
  * or fail with an Error.
  */
-export template <typename T>
+export template<typename T>
 using Result = std::expected<T, Error>;
 
 /**
@@ -57,7 +58,7 @@ using Result = std::expected<T, Error>;
  * 
  * This represents a value that may or may not be present.
  */
-export template <typename T>
+export template<typename T>
 using Option = std::optional<T>;
 
 /**
@@ -79,7 +80,7 @@ export inline auto Err(const Error &e) -> std::unexpected<Error> {
  * 
  * This function is used to create successful results in a more ergonomic way.
  */
-export template <typename T>
+export template<typename T>
 auto Ok(T &&value) -> std::expected<T, Error> {
     return std::expected<T, Error>(std::forward<T>(value));
 }
@@ -92,7 +93,7 @@ auto Ok(T &&value) -> std::expected<T, Error> {
  * 
  * This function is used to create optional values in a more ergonomic way.
  */
-export template <typename T>
+export template<typename T>
 auto Some(T &&value) -> std::optional<T> {
     return std::optional<T>(std::forward<T>(value));
 }
@@ -112,7 +113,7 @@ export using None = std::nullopt_t;
  * @warning This function assumes the Result contains a value and will cause
  *          undefined behavior if called on an error Result. Use with caution.
  */
-export template <typename T>
+export template<typename T>
 auto unwrap(const Result<T> &result) -> T {
     return *result;
 }

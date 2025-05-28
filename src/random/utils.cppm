@@ -1,8 +1,8 @@
 module;
 
-#include <algorithm>
 #include <random>
 #include <thread>
+#include <utility>
 #include <vector>
 
 export module diffusionx.random.utils;
@@ -37,7 +37,7 @@ export inline auto generator() -> std::mt19937 {
  * @note The sampler function should be thread-safe or use thread-local storage
  * @note For small values of n, fewer threads may be used for efficiency
  */
-export template <typename T, typename F>
+export template<typename T, typename F>
 auto parallel_generate(size_t n, F sampler) -> vector<T> {
     vector<T> result(n);
     if (n == 0) {
@@ -46,10 +46,10 @@ auto parallel_generate(size_t n, F sampler) -> vector<T> {
 
     unsigned int num_threads = std::thread::hardware_concurrency();
     if (num_threads == 0) {
-        num_threads = 1;  // Fallback if hardware_concurrency is not available
-                          // or returns 0
+        num_threads = 1; // Fallback if hardware_concurrency is not available
+        // or returns 0
     }
-    if (n < num_threads) {
+    if (std::cmp_less(n , num_threads)) {
         // If n is small, no need for many threads
         num_threads = static_cast<unsigned int>(n);
     }
@@ -64,7 +64,7 @@ auto parallel_generate(size_t n, F sampler) -> vector<T> {
         size_t start = i * chunk_size;
         size_t end = start + chunk_size;
         if (i == num_threads - 1) {
-            end += remainder;  // Last thread handles the remainder
+            end += remainder; // Last thread handles the remainder
         }
 
         threads.emplace_back([&result, start, end, sampler]() mutable {
@@ -74,7 +74,7 @@ auto parallel_generate(size_t n, F sampler) -> vector<T> {
         });
     }
 
-    for (auto &thread : threads) {
+    for (auto &thread: threads) {
         thread.join();
     }
 

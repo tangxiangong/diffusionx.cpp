@@ -28,9 +28,9 @@ using std::vector;
  * @note Uses parallel generation for improved performance
  * @note Each thread uses its own thread-local generator for thread safety
  */
-export template <typename T = double>
+export template<typename T = double>
     requires std::is_floating_point_v<T> || std::is_integral_v<T>
-auto rand(size_t n, T a = 0, T b = 1) -> Result<vector<T>> {
+auto rand(size_t n, T a = 0, T b = 1) -> Result<vector<T> > {
     if (a > b) {
         return Err(Error::InvalidArgument(
             format("The lower bound `a` must be less than "
@@ -68,7 +68,7 @@ auto rand(size_t n, T a = 0, T b = 1) -> Result<vector<T>> {
  * 
  * @note Uses thread-local generator for thread safety
  */
-export template <typename T = double>
+export template<typename T = double>
     requires std::is_floating_point_v<T> || std::is_integral_v<T>
 auto rand(T a = 0, T b = 1) -> Result<T> {
     if (a > b) {

@@ -28,9 +28,9 @@ using std::vector;
  * @note Uses parallel generation for improved performance
  * @note Each thread uses its own thread-local generator for thread safety
  */
-export template <typename T = double>
+export template<typename T = double>
     requires std::is_floating_point_v<T>
-auto randn(size_t n, T mean = 0, T stddev = 1) -> Result<vector<T>> {
+auto randn(size_t n, T mean = 0, T stddev = 1) -> Result<vector<T> > {
     if (stddev <= 0) {
         return Err(Error::InvalidArgument(format(
             "The standard deviation `stddev` must be positive, but got {}",
@@ -57,7 +57,7 @@ auto randn(size_t n, T mean = 0, T stddev = 1) -> Result<vector<T>> {
  * 
  * @note Uses thread-local generator for thread safety
  */
-export template <typename T = double>
+export template<typename T = double>
     requires std::is_floating_point_v<T>
 auto randn(T mean = 0, T stddev = 1) -> Result<T> {
     if (stddev <= 0) {
@@ -79,13 +79,13 @@ auto randn(T mean = 0, T stddev = 1) -> Result<T> {
  * and perform arithmetic operations that preserve the normal distribution property.
  * The normal distribution is fundamental in statistics and probability theory.
  */
-export template <typename T>
+export template<typename T>
     requires std::is_floating_point_v<T>
 class Normal {
-    T m_mean = 0.0;   ///< The mean (μ) of the distribution
+    T m_mean = 0.0; ///< The mean (μ) of the distribution
     T m_stddev = 1.0; ///< The standard deviation (σ) of the distribution
 
-   public:
+public:
     /**
      * @brief Default constructor creating a standard normal distribution (μ=0, σ=1)
      */
@@ -125,7 +125,7 @@ class Normal {
      * This method generates n independent samples from the normal distribution
      * using the stored mean and standard deviation parameters.
      */
-    [[nodiscard]] auto sample(size_t n) const -> Result<vector<T>> {
+    [[nodiscard]] auto sample(size_t n) const -> Result<vector<T> > {
         return randn(n, m_mean, m_stddev);
     }
 
@@ -138,8 +138,8 @@ class Normal {
      * X + Y ~ N(μ₁ + μ₂, σ₁² + σ₂²).
      */
     auto operator+(const Normal &rhs) const -> Normal {
-        double stddev = std::sqrt(m_stddev * m_stddev +
-                                  rhs.get_stddev() * rhs.get_stddev());
+        double stddev = std::sqrt((m_stddev * m_stddev) +
+                                  (rhs.get_stddev() * rhs.get_stddev()));
         double mean = m_mean + rhs.get_mean();
         return Normal{mean, stddev};
     }
