@@ -1,17 +1,7 @@
 # Examples CMakeLists.txt
 cmake_minimum_required(VERSION 3.28)
 
-# 如果作为独立项目构建
-if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-    project(diffusionx_examples)
-    
-    # 查找 diffusionx 包
-    find_package(diffusionx REQUIRED)
-    set(DIFFUSIONX_TARGET diffusionx::diffusionx)
-else()
-    # 作为子项目构建
-    set(DIFFUSIONX_TARGET diffusionx)
-endif()
+set(DIFFUSIONX_TARGET diffusionx)
 
 # 收集示例源文件
 file(GLOB EXAMPLES_SRC "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
@@ -35,39 +25,10 @@ foreach(example_file ${EXAMPLES_SRC})
     # 设置 C++23 标准
     target_compile_features(${example_name} PRIVATE cxx_std_23)
     
-    # 平台特定的编译器选项
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        target_compile_options(${example_name} PRIVATE
-            -Wall -Wextra -Wpedantic
-            $<$<CONFIG:Debug>:-g -O0>
-            $<$<CONFIG:Release>:-O3 -DNDEBUG>
-        )
-    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        target_compile_options(${example_name} PRIVATE
-            -Wall -Wextra -Wpedantic
-            $<$<CONFIG:Debug>:-g -O0>
-            $<$<CONFIG:Release>:-O3 -DNDEBUG>
-        )
-    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-        target_compile_options(${example_name} PRIVATE
-            /W4
-            $<$<CONFIG:Debug>:/Od /Zi>
-            $<$<CONFIG:Release>:/O2 /DNDEBUG>
-        )
-    endif()
-    
     # 设置输出目录
-    if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-        # 独立构建时
-        set_target_properties(${example_name} PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin"
-        )
-    else()
-        # 作为子项目构建时，使用父项目的输出目录
-        set_target_properties(${example_name} PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
-        )
-    endif()
+    set_target_properties(${example_name} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
+    )
     
     message(STATUS "Added example: ${example_name}")
 endforeach()

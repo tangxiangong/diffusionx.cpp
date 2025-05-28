@@ -34,14 +34,6 @@ target_sources(diffusionx_modules
 
 # 设置编译特性和选项
 target_compile_features(diffusionx_modules PUBLIC cxx_std_23)
-target_compile_options(diffusionx_modules PRIVATE
-    $<$<CXX_COMPILER_ID:Clang,GNU>:-Wall -Wextra -Wpedantic>
-    $<$<CXX_COMPILER_ID:MSVC>:/W4>
-    $<$<CONFIG:Debug>:$<$<CXX_COMPILER_ID:Clang,GNU>:-g -O0>>
-    $<$<CONFIG:Debug>:$<$<CXX_COMPILER_ID:MSVC>:/Od /Zi>>
-    $<$<CONFIG:Release>:$<$<CXX_COMPILER_ID:Clang,GNU>:-O3 -DNDEBUG>>
-    $<$<CONFIG:Release>:$<$<CXX_COMPILER_ID:MSVC>:/O2 /DNDEBUG>>
-)
 
 # 设置包含目录
 target_include_directories(diffusionx_modules PUBLIC 
