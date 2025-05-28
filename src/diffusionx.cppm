@@ -12,10 +12,11 @@
  * 
  * This is the main entry point that exports all core functionality.
  * 
- * @version 1.0.0
- * @author DiffusionX Team
+ * @version 0.1.0
+ * @author Xiangong Tang
  */
 export module diffusionx;
 
 export import diffusionx.error;
 export import diffusionx.random;
+export import diffusionx.simulation;
