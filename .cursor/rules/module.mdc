@@ -1,7 +1,0 @@
----
-description: 
-globs: 
-alwaysApply: true
----
-Use C++20 module
-The local compiler is llvm clang v20, not Apple Clang.
