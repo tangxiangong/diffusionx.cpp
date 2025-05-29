@@ -1,15 +1,14 @@
 /**
  * @file simulation.cppm
- * @brief Main module for stochastic process simulation
+ * @brief Main simulation module
  * 
- * This module provides the core infrastructure for simulating stochastic processes
- * and computing their statistical properties. It includes:
- * - Abstract base classes for continuous stochastic processes
- * - Monte Carlo simulation utilities
- * - Statistical analysis tools for trajectories
- * - Parallel computation capabilities
- * - Modern C++23 module interface
+ * This module provides the main interface for stochastic process simulation.
  */
+
 export module diffusionx.simulation;
 
+// Re-export all simulation modules
 export import diffusionx.simulation.basic;
+export import diffusionx.simulation.continuous;
+export import diffusionx.simulation.discrete;
+export import diffusionx.simulation.point;

@@ -1,0 +1,16 @@
+{
+  "name": "diffusionx-cpp",
+  "version": "0.1.0",
+  "description": "A modern C++23 library for stochastic process simulation and analysis",
+  "dependencies": [
+    "fftw3"
+  ],
+  "features": {
+    "tests": {
+      "description": "Build tests",
+      "dependencies": [
+        "catch2"
+      ]
+    }
+  }
+} 
