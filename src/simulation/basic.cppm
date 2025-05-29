@@ -10,3 +10,4 @@ export module diffusionx.simulation.basic;
 export import diffusionx.simulation.basic.utils;
 export import diffusionx.simulation.basic.continuous;
 export import diffusionx.simulation.basic.moment;
+export import diffusionx.simulation.basic.functional;
