@@ -1,5 +1,19 @@
 cmake_minimum_required(VERSION 3.28)
+
+# vcpkg 工具链配置
+if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        CACHE STRING "")
+endif()
+
+# 如果 vcpkg_installed 目录存在，设置 CMAKE_PREFIX_PATH
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg_installed")
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg_installed/arm64-osx")
+endif()
+
 project(diffusionx VERSION 0.1.0)
+
+find_package(FFTW3 CONFIG REQUIRED)
 
 # C++23 标准设置
 set(CMAKE_CXX_STANDARD 23)
@@ -34,6 +48,7 @@ target_sources(diffusionx_modules
 
 # 设置编译特性和选项
 target_compile_features(diffusionx_modules PUBLIC cxx_std_23)
+target_link_libraries(diffusionx_modules PUBLIC FFTW3::fftw3)
 
 # 设置包含目录
 target_include_directories(diffusionx_modules PUBLIC 
