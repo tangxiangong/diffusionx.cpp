@@ -2,6 +2,7 @@ module;
 
 #include <cmath>
 #include <vector>
+#include <optional>
 
 export module diffusionx.simulation.continuous.bm;
 

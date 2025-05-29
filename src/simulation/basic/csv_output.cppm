@@ -27,7 +27,7 @@ using std::string;
  * @param positions Vector of position values
  * @return Result indicating success or an Error
  */
-export Result<void> write_trajectory_csv(
+export Result<int> write_trajectory_csv(
     const string& filename,
     const vector<double>& times,
     const vector<double>& positions
@@ -50,7 +50,7 @@ export Result<void> write_trajectory_csv(
     }
     
     file.close();
-    return Ok();
+    return Ok(0);
 }
 
 /**
@@ -59,7 +59,7 @@ export Result<void> write_trajectory_csv(
  * @param trajectories Vector of trajectory pairs (times, positions)
  * @return Result indicating success or an Error
  */
-export Result<void> write_multiple_trajectories_csv(
+export Result<int> write_multiple_trajectories_csv(
     const string& filename,
     const vector<vec_pair>& trajectories
 ) {
@@ -89,7 +89,7 @@ export Result<void> write_multiple_trajectories_csv(
     }
     
     file.close();
-    return Ok();
+    return Ok(0);
 }
 
 /**
@@ -99,7 +99,7 @@ export Result<void> write_multiple_trajectories_csv(
  * @param tamsd_values Vector of TAMSD values
  * @return Result indicating success or an Error
  */
-export Result<void> write_tamsd_csv(
+export Result<int> write_tamsd_csv(
     const string& filename,
     const vector<double>& lag_times,
     const vector<double>& tamsd_values
@@ -122,7 +122,7 @@ export Result<void> write_tamsd_csv(
     }
     
     file.close();
-    return Ok();
+    return Ok(0);
 }
 
 /**
@@ -132,7 +132,7 @@ export Result<void> write_tamsd_csv(
  * @param msd_values Vector of MSD values
  * @return Result indicating success or an Error
  */
-export Result<void> write_msd_csv(
+export Result<int> write_msd_csv(
     const string& filename,
     const vector<double>& times,
     const vector<double>& msd_values
@@ -155,7 +155,7 @@ export Result<void> write_msd_csv(
     }
     
     file.close();
-    return Ok();
+    return Ok(0);
 }
 
 /**

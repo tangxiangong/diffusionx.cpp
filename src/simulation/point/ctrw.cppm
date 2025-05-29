@@ -97,7 +97,7 @@ public:
         vector<double> waiting_times;
         if (m_alpha == 1.0) {
             // Exponential distribution for α = 1
-            auto exp_result = rand_exponential(num_steps, 1.0);
+            auto exp_result = randexp(num_steps, 1.0);
             if (!exp_result.has_value()) {
                 return Err(exp_result.error());
             }

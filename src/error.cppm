@@ -40,6 +40,24 @@ export struct Error {
     static auto NotImplemented(const std::string &msg) -> Error {
         return Error("Not implemented: " + msg);
     }
+
+    /**
+     * @brief Creates an I/O error
+     * @param msg Additional context about the I/O error
+     * @return Error instance representing an I/O error
+     */
+    static auto IoError(const std::string &msg) -> Error {
+        return Error("I/O error: " + msg);
+    }
+
+    /**
+     * @brief Creates a simulation error
+     * @param msg Additional context about the simulation error
+     * @return Error instance representing a simulation error
+     */
+    static auto SimulationFailed(const std::string &msg) -> Error {
+        return Error("Simulation failed: " + msg);
+    }
 };
 
 /**
@@ -81,8 +99,18 @@ export inline auto Err(const Error &e) -> std::unexpected<Error> {
  * This function is used to create successful results in a more ergonomic way.
  */
 export template<typename T>
-auto Ok(T &&value) -> std::expected<T, Error> {
-    return std::expected<T, Error>(std::forward<T>(value));
+auto Ok(T &&value) -> std::expected<std::remove_reference_t<T>, Error> {
+    return std::expected<std::remove_reference_t<T>, Error>(std::forward<T>(value));
+}
+
+/**
+ * @brief Creates a successful result with void value
+ * @return std::expected<void, Error> representing success
+ * 
+ * This function is used to create successful results for operations that don't return a value.
+ */
+export inline auto Ok() -> std::expected<void, Error> {
+    return std::expected<void, Error>();
 }
 
 /**
@@ -94,8 +122,8 @@ auto Ok(T &&value) -> std::expected<T, Error> {
  * This function is used to create optional values in a more ergonomic way.
  */
 export template<typename T>
-auto Some(T &&value) -> std::optional<T> {
-    return std::optional<T>(std::forward<T>(value));
+auto Some(T &&value) -> std::optional<std::remove_reference_t<T>> {
+    return std::optional<std::remove_reference_t<T>>(std::forward<T>(value));
 }
 
 /**

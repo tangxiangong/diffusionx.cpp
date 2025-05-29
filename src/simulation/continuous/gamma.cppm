@@ -31,7 +31,7 @@ using std::vector;
  * - Var[X(t)] = αt/β²
  * - X(t) is non-decreasing and non-negative
  */
-export class Gamma : public ContinuousProcess {
+export class GammaProcess : public ContinuousProcess {
     double m_shape = 1.0; ///< Shape parameter α > 0
     double m_rate = 1.0; ///< Rate parameter β > 0
 
@@ -39,7 +39,7 @@ public:
     /**
      * @brief Default constructor creating standard Gamma process
      */
-    Gamma() = default;
+    GammaProcess() = default;
 
     /**
      * @brief Constructs Gamma process with specified parameters
@@ -47,7 +47,7 @@ public:
      * @param rate Rate parameter β (must be positive)
      * @throws std::invalid_argument if parameters are not positive
      */
-    Gamma(double shape, double rate)
+    GammaProcess(double shape, double rate)
         : m_shape(shape), m_rate(rate) {
         if (m_shape <= 0.0) {
             throw std::invalid_argument("Shape parameter must be positive");

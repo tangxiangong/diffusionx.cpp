@@ -10,6 +10,7 @@ import diffusionx.error;
 import diffusionx.random.normal;
 import diffusionx.simulation.basic.continuous;
 import diffusionx.simulation.basic.utils;
+import diffusionx.simulation.continuous.brownian_bridge;
 
 using std::vector;
 

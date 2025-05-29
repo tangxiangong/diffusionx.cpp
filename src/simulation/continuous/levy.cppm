@@ -173,7 +173,7 @@ public:
  * This is a special case of the Lévy process with zero skewness,
  * commonly used in financial modeling and physics.
  */
-export class SymmetricLevyProcess : public LevyProcess {
+export class SymmetricLevyProcess : public Levy {
 public:
     /**
      * @brief Constructs symmetric Lévy process
@@ -182,6 +182,6 @@ public:
      * @param start_position Initial position
      */
     SymmetricLevyProcess(double alpha, double sigma = 1.0, double start_position = 0.0)
-        : LevyProcess(alpha, 0.0, sigma, 0.0, start_position) {
+        : Levy(alpha, 0.0, sigma, 0.0, start_position) {
     }
 };
