@@ -175,24 +175,3 @@ auto DiscreteProcess::central_moment(size_t num_steps, int order, size_t particl
     auto moment = Moment<DiscreteProcess>(num_steps, order, *this);
     return moment.central_moment(particles);
 }
-
-/**
- * @brief Structure representing a discrete trajectory with a specific number of steps
- * @tparam T The type of the discrete process (must satisfy DP concept)
- * 
- * This structure encapsulates a discrete process with a fixed number of simulation steps.
- */
-export template<DP T>
-struct DiscreteTrajectory {
-    size_t num_steps; ///< The number of simulation steps
-    T &process; ///< Reference to the discrete process
-
-    /**
-     * @brief Constructs a discrete trajectory with specified steps and process
-     * @param num_steps The number of simulation steps
-     * @param process Reference to the discrete process
-     */
-    DiscreteTrajectory(size_t num_steps, T &process)
-        : num_steps(num_steps), process(process) {
-    }
-}; 
