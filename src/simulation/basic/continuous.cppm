@@ -168,7 +168,10 @@ struct Moment<T> {
                 return Err(traj.error());
             }
             auto [t, x] = traj.value();
-            return std::pow(x[x.size() - 1], m_order);
+            if (x.empty()) {
+                return Err(Error::InvalidArgument("Empty trajectory"));
+            }
+            return std::pow(x.back(), m_order);
         };
 
         return parallel_monte_carlo(particles, process, compute_func);
@@ -195,7 +198,11 @@ struct Moment<T> {
                 return Err(traj.error());
             }
             auto [t, x] = traj.value();
-            return std::pow(x[x.size() - 1] - mean, m_order);
+            if (x.empty()) {
+                return Err(Error::InvalidArgument("Empty trajectory"));
+            }
+
+            return std::pow(x.back() - mean, m_order);
         };
 
         return parallel_monte_carlo(particles, process, compute_func);
@@ -222,24 +229,3 @@ auto ContinuousProcess::central_moment(double duration, int order, size_t partic
     auto moment = Moment<ContinuousProcess>(duration, order, *this);
     return moment.central_moment(particles, time_step);
 }
-
-/**
- * @brief Structure representing a continuous trajectory with a specific duration
- * @tparam T The type of the continuous process (must satisfy CP concept)
- * 
- * This structure encapsulates a continuous process with a fixed simulation duration.
- */
-export template<CP T>
-struct ContinuousTrajectory {
-    double duration; ///< The simulation duration
-    T &process; ///< Reference to the continuous process
-
-    /**
-     * @brief Constructs a continuous trajectory with specified duration and process
-     * @param duration The simulation duration
-     * @param process Reference to the continuous process
-     */
-    ContinuousTrajectory(double duration, T &process)
-        : duration(duration), process(process) {
-    }
-};
