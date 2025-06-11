@@ -1,5 +1,5 @@
 /**
- * @file csv_output.cppm
+ * @file csv.cppm
  * @brief CSV output utilities for trajectory data
  * 
  * This module provides utilities for exporting trajectory data to CSV format.
@@ -12,7 +12,7 @@ module;
 #include <string>
 #include <sstream>
 
-export module diffusionx.simulation.basic.csv_output;
+export module diffusionx.simulation.basic.csv;
 
 import diffusionx.error;
 import diffusionx.simulation.basic.utils;
