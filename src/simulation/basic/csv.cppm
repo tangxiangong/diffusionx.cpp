@@ -181,7 +181,8 @@ export Result<vec_pair> read_trajectory_csv(const string& filename) {
     // Read data
     while (std::getline(file, line)) {
         std::istringstream iss(line);
-        string time_str, pos_str;
+        string time_str;
+        string pos_str;
         
         if (!std::getline(iss, time_str, ',') || !std::getline(iss, pos_str)) {
             return Err(Error::IoError("Invalid CSV format"));

@@ -102,7 +102,7 @@ public:
     if (!increments_result.has_value()) {
       return Err(increments_result.error());
     }
-    auto increments = increments_result.value();
+    const auto& increments = increments_result.value();
 
     // Simulate trajectory
     for (size_t i = 1; i <= num_steps; ++i) {

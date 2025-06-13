@@ -125,8 +125,9 @@ auto sample(double beta, double sigma, double mu) -> double {
  */
 export auto rand_stable(double alpha, double beta = 0.0, double sigma = 1.0,
                         double mu = 0.0) -> Result<double> {
-    if (auto res = check_parameters(alpha, beta, sigma); !res)
+    if (auto res = check_parameters(alpha, beta, sigma); !res) {
         return Err(res.error());
+    }
     if (alpha == 1) {
         return Ok(sample(beta, sigma, mu));
     }
@@ -148,8 +149,9 @@ export auto rand_stable(double alpha, double beta = 0.0, double sigma = 1.0,
 export auto rand_stable(size_t n, double alpha, double beta = 0.0,
                         double sigma = 1.0, double mu = 0.0)
     -> Result<vector<double> > {
-    if (auto res = check_parameters(alpha, beta, sigma); !res)
+    if (auto res = check_parameters(alpha, beta, sigma); !res) {
         return Err(res.error());
+    }
     if (alpha == 1) {
         auto sampler = [beta, sigma, mu]() { return sample(beta, sigma, mu); };
         return Ok(parallel_generate<double>(n, sampler));

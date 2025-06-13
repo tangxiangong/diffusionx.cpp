@@ -9,7 +9,6 @@
 module;
 
 #include <vector>
-#include <cmath>
 
 export module diffusionx.simulation.basic.tamsd;
 
@@ -184,7 +183,7 @@ export Result<double> ergodicity_breaking_parameter(const vector<vector<double>>
         return Err(Error::InvalidArgument("Mean TAMSD squared is zero"));
     }
     
-    double eb = (mean_tamsd * mean_tamsd) / mean_tamsd_squared - 1.0;
+    double eb = ((mean_tamsd * mean_tamsd) / mean_tamsd_squared) - 1.0;
     
     return Ok(eb);
 } 

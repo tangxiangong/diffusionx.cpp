@@ -725,11 +725,11 @@ public:
                 "max_duration must be greater than time_step"));
         }
         auto [a, b] = m_domain;
-        auto find = [a, b](const vector<double>& v) {
+        auto find = [a, b](const vector<double> &v) {
             auto it = std::ranges::find_if(v, [a, b](double position) {
                 return position <= a || position >= b;
             });
-            if (it!=v.end()) {
+            if (it != v.end()) {
                 size_t idx = std::distance(v.begin(), it);
                 return Some(idx);
             }

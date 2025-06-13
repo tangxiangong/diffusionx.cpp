@@ -31,18 +31,18 @@ using std::complex;
  * with stationary covariance functions. It requires that the circulant matrix
  * constructed from the covariance function is positive semidefinite.
  */
-export Result<vector<double>> circulant_embedding(
-    size_t n, 
-    std::function<double(double)> covariance_func
+export Result<vector<double> > circulant_embedding(
+    size_t n,
+    const std::function<double(double)> &covariance_func
 ) {
     if (n == 0) {
         return Err(Error::InvalidArgument("Number of points must be positive"));
     }
 
     // Create circulant matrix (first row)
-    size_t m = 2 * n;  // Size for circulant embedding
+    size_t m = 2 * n; // Size for circulant embedding
     vector<double> c(m);
-    
+
     // Fill the first row of the circulant matrix
     for (size_t i = 0; i < n; ++i) {
         c[i] = covariance_func(static_cast<double>(i));
@@ -54,24 +54,24 @@ export Result<vector<double>> circulant_embedding(
     // Check if the covariance function is valid (non-negative definite)
     // This is a simplified check - in practice, you might want to use FFT
     // to compute eigenvalues and check they are all non-negative
-    
+
     // For now, we'll assume the covariance function is valid
     // and proceed with a simplified implementation
-    
+
     // Generate random Gaussian vector
     auto gaussian_result = randn(n, 0.0, 1.0);
     if (!gaussian_result.has_value()) {
         return Err(gaussian_result.error());
     }
-    auto gaussian = gaussian_result.value();
-    
+    const auto &gaussian = gaussian_result.value();
+
     // Apply the square root of the covariance matrix
     // This is a simplified implementation - in practice, you would use FFT
     vector<double> result(n);
     for (size_t i = 0; i < n; ++i) {
         result[i] = std::sqrt(c[0]) * gaussian[i];
     }
-    
+
     return Ok(std::move(result));
 }
 
@@ -81,19 +81,21 @@ export Result<vector<double>> circulant_embedding(
  * @param hurst Hurst parameter H ∈ (0, 1)
  * @return Result containing the fBm values, or an Error
  */
-export Result<vector<double>> fbm_circulant_embedding(size_t n, double hurst) {
+export Result<vector<double> > fbm_circulant_embedding(size_t n, double hurst) {
     if (hurst <= 0.0 || hurst >= 1.0) {
         return Err(Error::InvalidArgument("Hurst parameter must be in (0, 1)"));
     }
-    
+
     // Define the covariance function for fBm
     auto covariance = [hurst](double k) -> double {
-        if (k == 0) return 1.0;
-        return 0.5 * (std::pow(std::abs(k + 1), 2 * hurst) + 
-                     std::pow(std::abs(k - 1), 2 * hurst) - 
-                     2 * std::pow(std::abs(k), 2 * hurst));
+        if (k == 0) {
+            return 1.0;
+        }
+        return 0.5 * (std::pow(std::abs(k + 1), 2 * hurst) +
+                      std::pow(std::abs(k - 1), 2 * hurst) -
+                      2 * std::pow(std::abs(k), 2 * hurst));
     };
-    
+
     return circulant_embedding(n, covariance);
 }
 
@@ -105,7 +107,7 @@ export Result<vector<double>> fbm_circulant_embedding(size_t n, double hurst) {
  * @param dt Time step
  * @return Result containing the OU process values, or an Error
  */
-export Result<vector<double>> ou_circulant_embedding(size_t n, double theta, double sigma, double dt) {
+export Result<vector<double> > ou_circulant_embedding(size_t n, double theta, double sigma, double dt) {
     if (theta <= 0.0) {
         return Err(Error::InvalidArgument("Mean reversion parameter must be positive"));
     }
@@ -115,12 +117,12 @@ export Result<vector<double>> ou_circulant_embedding(size_t n, double theta, dou
     if (dt <= 0.0) {
         return Err(Error::InvalidArgument("Time step must be positive"));
     }
-    
+
     // Define the covariance function for OU process
     auto covariance = [theta, sigma, dt](double k) -> double {
         double tau = std::abs(k) * dt;
         return (sigma * sigma / (2.0 * theta)) * std::exp(-theta * tau);
     };
-    
+
     return circulant_embedding(n, covariance);
-} 
+}

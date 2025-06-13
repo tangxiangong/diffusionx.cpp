@@ -97,7 +97,7 @@ public:
    *
    * @post The returned pair represents the interval bounds where first < second
    */
-  double_pair get_domain() const { return m_domain; }
+  [[nodiscard]] double_pair get_domain() const { return m_domain; }
 
   Result<Option<double>> simulate(double max_duration,
                                   double time_step = 0.01) {
@@ -185,7 +185,7 @@ public:
    *
    * @post The returned value is positive
    */
-  double get_duration() const { return m_duration; }
+  [[nodiscard]] double get_duration() const { return m_duration; }
 
   /**
    * @brief Get the domain interval
@@ -194,7 +194,7 @@ public:
    *
    * @post The returned pair represents the interval bounds where first < second
    */
-  double_pair get_domain() const { return m_domain; }
+  [[nodiscard]] double_pair get_domain() const { return m_domain; }
 
   /**
    * @brief Get the associated stochastic process
