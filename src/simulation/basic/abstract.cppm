@@ -472,10 +472,8 @@ auto PointProcess::simulate(double duration) -> Result<vec_pair> {
   vector<double> x_{};
   t_.resize(index + 1);
   x_.resize(index + 1);
-  for (size_t k = 0; k < index; ++k) {
-    t_[k] = t[k];
-    x_[k] = x[k];
-  }
+  std::copy_n(t.begin(), index, t_.begin());
+  std::copy_n(x.begin(), index, x_.begin());
   if (t[index] > duration) {
     t_[index] = duration;
     x_[index] = x_[index - 1];
