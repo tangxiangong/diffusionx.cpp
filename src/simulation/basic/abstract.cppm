@@ -3,6 +3,7 @@ module;
 #include <algorithm>
 #include <cmath>
 #include <concepts>
+#include <format>
 #include <random>
 #include <string>
 #include <vector>
@@ -14,6 +15,7 @@ export module diffusionx.simulation.basic.abstract;
 import diffusionx.error;
 import diffusionx.simulation.basic.utils;
 import diffusionx.simulation.basic.moment;
+import diffusionx.simulation.basic.functional;
 
 /**
  * @brief Abstract base class for continuous stochastic processes
@@ -645,3 +647,114 @@ auto DiscreteProcess::central_moment(size_t num_steps, int order,
   auto moment = Moment<DiscreteProcess>(num_steps, order, *this);
   return moment.central_moment(particles);
 }
+
+template <CP T> class FirstPassageTime<T> {
+private:
+  T &m_process;         ///< Reference to the stochastic process
+  double_pair m_domain; ///< The domain interval (a, b)
+
+public:
+  /**
+   * @brief Default constructor
+   *
+   * Creates an uninitialized FirstPassageTime object.
+   * This constructor should only be used when the object will be assigned
+   * later.
+   */
+  FirstPassageTime() = default;
+
+  /**
+   * @brief Construct a FirstPassageTime object
+   *
+   * @param process Reference to the stochastic process
+   * @param domain The domain interval (a, b) where a < b
+   *
+   * @throws std::invalid_argument if the domain is not a valid interval (a >=
+   * b)
+   *
+   * @pre The domain must satisfy a < b
+   * @post The FirstPassageTime object is properly initialized
+   *
+   * @example
+   * ```cpp
+   * BrownianMotion bm;
+   * FirstPassageTime fpt(bm, {-2.0, 2.0});  // Valid interval
+   * ```
+   */
+  FirstPassageTime(T &process, double_pair domain)
+      : m_process{process}, m_domain{domain} {
+    auto [a, b] = domain;
+    if (a >= b) {
+      throw std::invalid_argument(std::format(
+          "The domain (a, b) must be a valid interval, but got ({}, {})", a,
+          b));
+    }
+  }
+
+  /**
+   * @brief Get the associated stochastic process
+   *
+   * @return T A copy of the stochastic process
+   *
+   * @note This returns a copy of the process, not a reference
+   */
+  T get_process() const { return m_process; }
+
+  /**
+   * @brief Get the domain interval
+   *
+   * @return double_pair The domain interval (a, b)
+   *
+   * @post The returned pair represents the interval bounds where first < second
+   */
+  double_pair get_domain() const { return m_domain; }
+
+  Result<Option<double>> simulate(double max_duration,
+                                  double time_step = 0.01) {
+    if (max_duration <= 0) {
+      return Err(Error::InvalidArgument("max_duration must be positive"));
+    }
+    if (time_step <= 0) {
+      return Err(Error::InvalidArgument("time_step must be positive"));
+    }
+    if (max_duration < time_step) {
+      return Err(Error::InvalidArgument(
+          "max_duration must be greater than time_step"));
+    }
+    auto traj = m_process.simulate(max_duration, time_step);
+    auto [a, b] = m_domain;
+    double duration = std::max(max_duration / 10, 10.0);
+    while (true) {
+      auto traj_result = m_process.simulate(duration, time_step);
+      if (!traj_result.has_value()) {
+        return Err(traj_result.error());
+      }
+      auto [t, x] = traj_result.value();
+      auto it = std::ranges::find_if(x, [a, b](double position) {
+        return position <= a || position >= b;
+      });
+      if (it != x.end()) {
+        size_t idx = std::distance(x.begin(), it);
+        return Ok(Some(t[idx]));
+      }
+      duration *= 2;
+      if (duration > max_duration) {
+        duration = max_duration;
+        auto traj_result = m_process.simulate(duration, time_step);
+        if (!traj_result.has_value()) {
+          return Err(traj_result.error());
+        }
+        auto [t, x] = traj_result.value();
+        auto it = std::ranges::find_if(x, [a, b](double position) {
+          return position <= a || position >= b;
+        });
+        if (it != x.end()) {
+          size_t idx = std::distance(x.begin, it);
+          return Ok(Some(t[idx]));
+        } else {
+          return Ok(std::nullopt);
+        }
+      }
+    }
+  }
+};
