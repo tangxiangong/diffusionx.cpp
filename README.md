@@ -17,35 +17,69 @@
 
 ## 构建要求
 
-- CMake 3.28+
+- CMake 4.0+
 - 支持 C++23 和 C++20 模块的编译器：
   - LLVM/Clang 20.1.5+ (推荐使用 Homebrew 版本)
   - GCC 14+ (实验性支持)
   - MSVC 2022+ (Windows)
 - Ninja 构建系统
+- vcpkg 包管理器
+- just 命令运行器（可选，推荐）
 
 ## 构建
 
-### macOS (使用 Homebrew LLVM)
+### 安装依赖
+
+#### macOS (使用 Homebrew)
+
+```bash
+# 安装编译工具
+brew install llvm ninja cmake just
+
+# 安装 vcpkg
+git clone https://github.com/Microsoft/vcpkg.git ~/vcpkg
+~/vcpkg/bootstrap-vcpkg.sh
+
+# 设置环境变量（添加到 ~/.zshrc 或 ~/.bashrc）
+export VCPKG_ROOT=~/vcpkg
+```
+
+### 使用 just 构建（推荐）
+
+```bash
+# 构建 debug 版本（默认）
+just
+
+# 或者显式指定
+just debug
+
+# 构建 release 版本
+just release
+
+# 增量构建（不清理）
+just build
+
+# 只清理构建产物
+just clean
+
+# 安装依赖
+just install
+
+# 重新配置
+just configure
+```
+
+### 手动构建
 
 ```bash
 # 安装依赖
-brew install llvm ninja cmake
+vcpkg install
+
+# 配置项目
+cmake --preset=vcpkg
 
 # 构建
-mkdir build
-cd build
-CXX=/opt/homebrew/opt/llvm/bin/clang++ CC=/opt/homebrew/opt/llvm/bin/clang cmake -G Ninja ..
-ninja
-```
-
-### 其他平台
-
-```bash
-mkdir build
-cd build
-cmake -G Ninja ..
-ninja
+cmake --build build
 ```
 
 ## 模块结构
@@ -77,27 +111,24 @@ int main() {
     } else {
         std::println("错误: {}", result.error().message);
     }
-    
+
     // 生成均匀分布样本
     auto uniform = rand<double>(100, 0.0, 1.0);
     if (uniform) {
         std::println("生成了 {} 个均匀分布样本", uniform->size());
     }
-    
+
     return 0;
 }
 ```
 
 ## 运行示例
 
-构建完成后，可以运行示例程序：
+构建完成后，示例程序位于 `bin/examples` 目录：
 
 ```bash
 # 运行随机数生成示例
-./bin/random
-
-# 运行模块测试示例
-./bin/test_modules
+./bin/examples/random_number
 ```
 
 ## 技术细节
@@ -106,15 +137,16 @@ int main() {
 - 支持并行随机数生成，自动利用多核处理器
 - 使用 `std::expected` 进行现代错误处理
 - 所有模块都编译为预编译模块 (.pcm) 文件，提高编译速度
-- 生成静态库 `libdiffusionx_modules.a` 供链接使用
+- 生成共享库 `libdiffusionx.dylib` (macOS) / `libdiffusionx.so` (Linux)
+- 使用 vcpkg 进行依赖管理
 
 ## 已验证平台
 
-- ✅ macOS 14.5+ with Homebrew LLVM 20.1.5
+- ✅ macOS 14.5+ with Homebrew LLVM 21.1
 - ⚠️ 其他平台需要相应的 C++20 模块支持
 
 ## 注意事项
 
 - 确保使用支持 C++20 模块的编译器版本
 - 在 macOS 上推荐使用 Homebrew 的 LLVM 而不是 Apple Clang
-- 模块系统仍在快速发展中，不同编译器的支持程度可能有所不同 
+- 模块系统仍在快速发展中，不同编译器的支持程度可能有所不同
