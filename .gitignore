@@ -1,9 +1,10 @@
 **/.DS_Store
-build/*
-.idea/*
-.cache/*
-bin/*
-lib/*
+build/
+.idea/
+.cache/
+.vscode/
+bin/
+lib/
 compile_commands.json
 
 # vcpkg

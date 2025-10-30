@@ -1,16 +1,19 @@
-build:
-    rm -rf build && CC=/opt/homebrew/opt/llvm/bin/clang CXX=/opt/homebrew/opt/llvm/bin/clang++ cmake -B build -G Ninja && cmake --build build
+default: debug
 
-release:
-    rm -rf build && CC=/opt/homebrew/opt/llvm/bin/clang CXX=/opt/homebrew/opt/llvm/bin/clang++ cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build build
+build_dir := "build"
+lib_dir := "lib"
+bin_dir := "bin"
 
 debug:
-    rm -rf build && CC=/opt/homebrew/opt/llvm/bin/clang CXX=/opt/homebrew/opt/llvm/bin/clang++ cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug && cmake --build build
+    @if [ -d "{{build_dir}}" ]; then rm -rf {{build_dir}}; fi
+    @if [ -d "{{lib_dir}}" ]; then rm -rf {{lib_dir}}; fi
+    @if [ -d "{{bin_dir}}" ]; then rm -rf {{bin_dir}}; fi
+    @cmake -B {{build_dir}} -G Ninja
+    @cmake --build {{build_dir}}
 
-clean:
-    rm -rf build
-
-configure:
-    CC=/opt/homebrew/opt/llvm/bin/clang CXX=/opt/homebrew/opt/llvm/bin/clang++ cmake -B build -G Ninja
-
-# -DCMAKE_TOOLCHAIN_FILE=~/vcpkg/scripts/buildsystems/vcpkg.cmake
+release:
+    @if [ -d "{{build_dir}}" ]; then rm -rf {{build_dir}}; fi
+    @if [ -d "{{lib_dir}}" ]; then rm -rf {{lib_dir}}; fi
+    @if [ -d "{{bin_dir}}" ]; then rm -rf {{bin_dir}}; fi
+    @cmake -B {{build_dir}} -G Ninja -DCMAKE_BUILD_TYPE=Release
+    @cmake --build {{build_dir}}
