@@ -235,6 +235,33 @@ auto ContinuousProcess::central_moment(double duration, int order,
     return moment.central_moment(particles, time_step);
 }
 
+Result<Option<double>> ContinuousProcess::fpt(double_pair domain,
+                                               double max_duration,
+                                               double time_step) {
+    auto fpt_obj = FirstPassageTime(*this, domain);
+    return fpt_obj.simulate(max_duration, time_step);
+}
+
+Result<double> ContinuousProcess::occupation_time(double_pair domain,
+                                                   double duration,
+                                                   double time_step) {
+    return Err(Error::NotImplemented(
+        "occupation_time is not implemented for this process"));
+}
+
+Result<double> ContinuousProcess::tamsd(double duration, double delta,
+                                        size_t quad_order, double time_step) {
+    return Err(Error::NotImplemented(
+        "tamsd is not implemented for this process"));
+}
+
+Result<double> ContinuousProcess::eatamsd(double duration, double delta,
+                                          size_t particles, int quad_order,
+                                          double time_step) {
+    return Err(Error::NotImplemented(
+        "eatamsd is not implemented for this process"));
+}
+
 /**
  * @brief Base class for point processes
  *
@@ -450,6 +477,33 @@ auto PointProcess::central_moment(double duration, int order, size_t particles,
                                   double time_step) -> Result<double> {
     auto moment = Moment<PointProcess>(duration, order, *this);
     return moment.central_moment(particles, time_step);
+}
+
+Result<Option<double>> PointProcess::fpt(double_pair domain,
+                                          double max_duration,
+                                          double time_step) {
+    auto fpt_obj = FirstPassageTime(*this, domain);
+    return fpt_obj.simulate(max_duration, time_step);
+}
+
+Result<double> PointProcess::occupation_time(double_pair domain,
+                                              double duration,
+                                              double time_step) {
+    return Err(Error::NotImplemented(
+        "occupation_time is not implemented for this process"));
+}
+
+Result<double> PointProcess::tamsd(double duration, double delta,
+                                   size_t quad_order, double time_step) {
+    return Err(Error::NotImplemented(
+        "tamsd is not implemented for this process"));
+}
+
+Result<double> PointProcess::eatamsd(double duration, double delta,
+                                     size_t particles, int quad_order,
+                                     double time_step) {
+    return Err(Error::NotImplemented(
+        "eatamsd is not implemented for this process"));
 }
 
 auto PointProcess::simulate(double duration) -> Result<vec_pair> {
