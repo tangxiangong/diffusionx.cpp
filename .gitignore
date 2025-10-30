@@ -11,6 +11,7 @@ compile_commands.json
 vcpkg_installed/
 .vcpkg-root
 vcpkg-manifest-install.log
+CMakeUserPresets.json
 
 # 测试项目构建目录
 test_vcpkg/build/
