@@ -15,7 +15,7 @@ configure: install
 debug: clean configure
     @cmake --build {{build_dir}}
 
-release: clean
+release: clean install
     @cmake --preset=vcpkg -DCMAKE_BUILD_TYPE=Release
     @cmake --build {{build_dir}}
 

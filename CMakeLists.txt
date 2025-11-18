@@ -37,7 +37,7 @@ target_link_libraries(diffusionx
     FFTW3::fftw3
 )
 
-option(BUILD_EXAMPLES "Build example programs" ON)
+option(BUILD_EXAMPLES "Build example programs" OFF)
 
 if(BUILD_EXAMPLES)
     add_subdirectory(examples)
@@ -49,4 +49,53 @@ add_custom_command(
     "${CMAKE_BINARY_DIR}/compile_commands.json"
     "${PROJECT_SOURCE_DIR}/compile_commands.json"
     COMMENT "Copying compile_commands.json to project root"
+)
+
+# Install configuration
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+# Install the library
+install(TARGETS diffusionx
+    EXPORT diffusionxTargets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    FILE_SET CXX_MODULES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/diffusionx
+)
+
+# Install module files (for reference and compatibility)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/diffusionx
+    FILES_MATCHING PATTERN "*.cppm"
+)
+
+# Generate and install CMake config files
+set(CONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/diffusionx)
+
+install(EXPORT diffusionxTargets
+    FILE diffusionxTargets.cmake
+    NAMESPACE diffusionx::
+    DESTINATION ${CONFIG_INSTALL_DIR}
+)
+
+# Create config file
+configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/diffusionxConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/diffusionxConfig.cmake
+    INSTALL_DESTINATION ${CONFIG_INSTALL_DIR}
+)
+
+# Create version file
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/diffusionxConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+# Install config files
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/diffusionxConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/diffusionxConfigVersion.cmake
+    DESTINATION ${CONFIG_INSTALL_DIR}
 )
