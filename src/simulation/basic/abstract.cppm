@@ -7,14 +7,14 @@ module;
 #include <string>
 #include <vector>
 
-using std::vector;
-
 export module diffusionx.simulation.basic.abstract;
 
 import diffusionx.error;
 import diffusionx.simulation.basic.utils;
 import diffusionx.simulation.basic.moment;
 import diffusionx.simulation.basic.functional;
+
+using std::vector;
 
 /**
  * @brief Abstract base class for continuous stochastic processes
@@ -40,6 +40,14 @@ export struct ContinuousProcess {
      */
     virtual Result<vec_pair> simulate(double duration,
                                       double time_step = 0.01) = 0;
+
+    virtual Result<double> displacement(double duration, double time_step = 0.01);
+
+    // TODO: 应该是纯虚
+    virtual double start() {
+        return 0.0;
+    };
+    virtual Result<double> end(double duration, double time_step = 0.01);
 
     /**
      * @brief Computes the mean of the process at a given time
@@ -85,50 +93,50 @@ export struct ContinuousProcess {
                                           size_t particles = 10000,
                                           double time_step = 0.01);
 
-    /**
-     * @brief Computes the first passage time (FPT) for a given domain
-     * @param domain The domain boundaries as a pair (lower, upper)
-     * @param max_duration Maximum simulation time (default: 1000)
-     * @param time_step The time step for discretization (default: 0.01)
-     * @return Result containing an optional FPT (None if no passage occurs), or
-     * an Error
-     */
-    virtual Result<Option<double> >
-    fpt(double_pair domain, double max_duration = 1000, double time_step = 0.01);
-
-    /**
-     * @brief Computes the occupation time within a given domain
-     * @param domain The domain boundaries as a pair (lower, upper)
-     * @param duration The total simulation time
-     * @param time_step The time step for discretization (default: 0.01)
-     * @return Result containing the occupation time, or an Error
-     */
-    virtual Result<double> occupation_time(double_pair domain, double duration,
-                                           double time_step = 0.01);
-
-    /**
-     * @brief Computes the time-averaged mean squared displacement (TAMSD)
-     * @param duration The total simulation time
-     * @param delta The lag time for averaging
-     * @param quad_order The order of quadrature for integration (default: 10)
-     * @param time_step The time step for discretization (default: 0.01)
-     * @return Result containing the TAMSD value, or an Error
-     */
-    virtual Result<double> tamsd(double duration, double delta,
-                                 size_t quad_order = 10, double time_step = 0.01);
-
-    /**
-     * @brief Computes the ensemble-averaged time-averaged MSD (EATAMSD)
-     * @param duration The total simulation time
-     * @param delta The lag time for averaging
-     * @param particles The number of Monte Carlo samples (default: 10000)
-     * @param quad_order The order of quadrature for integration (default: 10)
-     * @param time_step The time step for discretization (default: 0.01)
-     * @return Result containing the EATAMSD value, or an Error
-     */
-    virtual Result<double> eatamsd(double duration, double delta,
-                                   size_t particles = 10000, int quad_order = 10,
-                                   double time_step = 0.01);
+    // /**
+    //  * @brief Computes the first passage time (FPT) for a given domain
+    //  * @param domain The domain boundaries as a pair (lower, upper)
+    //  * @param max_duration Maximum simulation time (default: 1000)
+    //  * @param time_step The time step for discretization (default: 0.01)
+    //  * @return Result containing an optional FPT (None if no passage occurs), or
+    //  * an Error
+    //  */
+    // virtual Result<Option<double> >
+    // fpt(double_pair domain, double max_duration = 1000, double time_step = 0.01);
+    //
+    // /**
+    //  * @brief Computes the occupation time within a given domain
+    //  * @param domain The domain boundaries as a pair (lower, upper)
+    //  * @param duration The total simulation time
+    //  * @param time_step The time step for discretization (default: 0.01)
+    //  * @return Result containing the occupation time, or an Error
+    //  */
+    // virtual Result<double> occupation_time(double_pair domain, double duration,
+    //                                        double time_step = 0.01);
+    //
+    // /**
+    //  * @brief Computes the time-averaged mean squared displacement (TAMSD)
+    //  * @param duration The total simulation time
+    //  * @param delta The lag time for averaging
+    //  * @param quad_order The order of quadrature for integration (default: 10)
+    //  * @param time_step The time step for discretization (default: 0.01)
+    //  * @return Result containing the TAMSD value, or an Error
+    //  */
+    // virtual Result<double> tamsd(double duration, double delta,
+    //                              size_t quad_order = 10, double time_step = 0.01);
+    //
+    // /**
+    //  * @brief Computes the ensemble-averaged time-averaged MSD (EATAMSD)
+    //  * @param duration The total simulation time
+    //  * @param delta The lag time for averaging
+    //  * @param particles The number of Monte Carlo samples (default: 10000)
+    //  * @param quad_order The order of quadrature for integration (default: 10)
+    //  * @param time_step The time step for discretization (default: 0.01)
+    //  * @return Result containing the EATAMSD value, or an Error
+    //  */
+    // virtual Result<double> eatamsd(double duration, double delta,
+    //                                size_t particles = 10000, int quad_order = 10,
+    //                                double time_step = 0.01);
 };
 
 /**
@@ -162,19 +170,12 @@ struct Moment<T> {
      */
     auto raw_moment(size_t particles = 10000, double time_step = 0.01)
         -> Result<double> {
-        auto compute_func = [this, time_step](auto &proc) -> Result<double> {
-            auto traj = proc.simulate(m_duration, time_step);
-            if (!traj.has_value()) {
-                return Err(traj.error());
-            }
-            auto [t, x] = traj.value();
-            if (x.empty()) {
-                return Err(Error::InvalidArgument("Empty trajectory"));
-            }
-            return std::pow(x.back(), m_order);
+        auto compute_func = [this, time_step]() -> double {
+            double end = this->process.end(m_duration, time_step).value();
+            return m_order == 1 ? end : std::pow(end, m_order);
         };
 
-        return parallel_monte_carlo(particles, process, compute_func);
+        return parallel_monte_carlo(particles, compute_func);
     }
 
     /**
@@ -185,7 +186,6 @@ struct Moment<T> {
      */
     auto central_moment(size_t particles = 10000, double time_step = 0.01)
         -> Result<double> {
-        // First compute the mean using raw moment of order 1
         Moment<T> mean_moment(m_duration, 1, process);
         auto mean_result = mean_moment.raw_moment(particles, time_step);
         if (!mean_result.has_value()) {
@@ -193,22 +193,52 @@ struct Moment<T> {
         }
         double mean = mean_result.value();
 
-        auto compute_func = [this, time_step, mean](auto &proc) -> Result<double> {
-            auto traj = proc.simulate(m_duration, time_step);
-            if (!traj.has_value()) {
-                return Err(traj.error());
-            }
-            auto [t, x] = traj.value();
-            if (x.empty()) {
-                return Err(Error::InvalidArgument("Empty trajectory"));
-            }
-
-            return std::pow(x.back() - mean, m_order);
+        auto compute_func = [this, time_step, mean]() -> double {
+            auto end = process.end(m_duration, time_step).value();
+            return m_order == 1 ? end - mean : std::pow(end - mean, m_order);
         };
 
-        return parallel_monte_carlo(particles, process, compute_func);
+        return parallel_monte_carlo(particles, compute_func);
+    }
+
+    /**
+     * @brief Computes the MSD using parallel Monte Carlo simulation
+     * @param particles The number of Monte Carlo samples (default: 10000)
+     * @param time_step The time step for discretization (default: 0.01)
+     * @return Result containing the MSD value, or an Error
+     */
+    auto msd(size_t particles = 10000, double time_step = 0.01)
+        -> Result<double> {
+        auto compute_func = [this, time_step]() -> double {
+            auto delta_x = process.displacement(m_duration, time_step).value();
+            return delta_x * delta_x;
+        };
+
+        return parallel_monte_carlo(particles, compute_func);
     }
 };
+
+Result<double> ContinuousProcess::displacement(double duration,
+                                               double time_step) {
+    auto traj = simulate(duration, time_step);
+    if (!traj.has_value()) {
+        return Err(traj.error());
+    }
+    auto [t, x] = traj.value();
+    if (x.empty()) {
+        return Err(Error::InvalidArgument("Empty trajectory"));
+    }
+    return x.back() - start();
+}
+
+Result<double> ContinuousProcess::end(double duration,
+                                               double time_step) {
+    auto delta_x = displacement(duration, time_step);
+    if (!delta_x.has_value()) {
+        return Err(delta_x.error());
+    }
+    return delta_x.value() + start();
+}
 
 Result<double> ContinuousProcess::mean(double duration, size_t particles,
                                        double time_step) {
@@ -219,7 +249,7 @@ Result<double> ContinuousProcess::mean(double duration, size_t particles,
 Result<double> ContinuousProcess::msd(double duration, size_t particles,
                                       double time_step) {
     auto moment = Moment<ContinuousProcess>(duration, 2, *this);
-    return moment.central_moment(particles, time_step);
+    return moment.msd(particles, time_step);
 }
 
 auto ContinuousProcess::raw_moment(double duration, int order, size_t particles,
@@ -235,32 +265,32 @@ auto ContinuousProcess::central_moment(double duration, int order,
     return moment.central_moment(particles, time_step);
 }
 
-Result<Option<double>> ContinuousProcess::fpt(double_pair domain,
-                                               double max_duration,
-                                               double time_step) {
-    auto fpt_obj = FirstPassageTime(*this, domain);
-    return fpt_obj.simulate(max_duration, time_step);
-}
-
-Result<double> ContinuousProcess::occupation_time(double_pair domain,
-                                                   double duration,
-                                                   double time_step) {
-    return Err(Error::NotImplemented(
-        "occupation_time is not implemented for this process"));
-}
-
-Result<double> ContinuousProcess::tamsd(double duration, double delta,
-                                        size_t quad_order, double time_step) {
-    return Err(Error::NotImplemented(
-        "tamsd is not implemented for this process"));
-}
-
-Result<double> ContinuousProcess::eatamsd(double duration, double delta,
-                                          size_t particles, int quad_order,
-                                          double time_step) {
-    return Err(Error::NotImplemented(
-        "eatamsd is not implemented for this process"));
-}
+// Result<Option<double>> ContinuousProcess::fpt(double_pair domain,
+//                                                double max_duration,
+//                                                double time_step) {
+//     auto fpt_obj = FirstPassageTime(*this, domain);
+//     return fpt_obj.simulate(max_duration, time_step);
+// }
+//
+// Result<double> ContinuousProcess::occupation_time(double_pair domain,
+//                                                    double duration,
+//                                                    double time_step) {
+//     return Err(Error::NotImplemented(
+//         "occupation_time is not implemented for this process"));
+// }
+//
+// Result<double> ContinuousProcess::tamsd(double duration, double delta,
+//                                         size_t quad_order, double time_step) {
+//     return Err(Error::NotImplemented(
+//         "tamsd is not implemented for this process"));
+// }
+//
+// Result<double> ContinuousProcess::eatamsd(double duration, double delta,
+//                                           size_t particles, int quad_order,
+//                                           double time_step) {
+//     return Err(Error::NotImplemented(
+//         "eatamsd is not implemented for this process"));
+// }
 
 /**
  * @brief Base class for point processes
@@ -330,50 +360,50 @@ public:
                                           size_t particles = 10000,
                                           double time_step = 0.01);
 
-    /**
-     * @brief Computes the first passage time (FPT) for a given domain
-     * @param domain The domain boundaries as a pair (lower, upper)
-     * @param max_duration Maximum simulation time (default: 1000)
-     * @param time_step The time step for discretization (default: 0.01)
-     * @return Result containing an optional FPT (None if no passage occurs), or
-     * an Error
-     */
-    virtual Result<Option<double> >
-    fpt(double_pair domain, double max_duration = 1000, double time_step = 0.01);
-
-    /**
-     * @brief Computes the occupation time within a given domain
-     * @param domain The domain boundaries as a pair (lower, upper)
-     * @param duration The total simulation time
-     * @param time_step The time step for discretization (default: 0.01)
-     * @return Result containing the occupation time, or an Error
-     */
-    virtual Result<double> occupation_time(double_pair domain, double duration,
-                                           double time_step = 0.01);
-
-    /**
-     * @brief Computes the time-averaged mean squared displacement (TAMSD)
-     * @param duration The total simulation time
-     * @param delta The lag time for averaging
-     * @param quad_order The order of quadrature for integration (default: 10)
-     * @param time_step The time step for discretization (default: 0.01)
-     * @return Result containing the TAMSD value, or an Error
-     */
-    virtual Result<double> tamsd(double duration, double delta,
-                                 size_t quad_order = 10, double time_step = 0.01);
-
-    /**
-     * @brief Computes the ensemble-averaged time-averaged MSD (EATAMSD)
-     * @param duration The total simulation time
-     * @param delta The lag time for averaging
-     * @param particles The number of Monte Carlo samples (default: 10000)
-     * @param quad_order The order of quadrature for integration (default: 10)
-     * @param time_step The time step for discretization (default: 0.01)
-     * @return Result containing the EATAMSD value, or an Error
-     */
-    virtual Result<double> eatamsd(double duration, double delta,
-                                   size_t particles = 10000, int quad_order = 10,
-                                   double time_step = 0.01);
+    // /**
+    //  * @brief Computes the first passage time (FPT) for a given domain
+    //  * @param domain The domain boundaries as a pair (lower, upper)
+    //  * @param max_duration Maximum simulation time (default: 1000)
+    //  * @param time_step The time step for discretization (default: 0.01)
+    //  * @return Result containing an optional FPT (None if no passage occurs), or
+    //  * an Error
+    //  */
+    // virtual Result<Option<double> >
+    // fpt(double_pair domain, double max_duration = 1000, double time_step = 0.01);
+    //
+    // /**
+    //  * @brief Computes the occupation time within a given domain
+    //  * @param domain The domain boundaries as a pair (lower, upper)
+    //  * @param duration The total simulation time
+    //  * @param time_step The time step for discretization (default: 0.01)
+    //  * @return Result containing the occupation time, or an Error
+    //  */
+    // virtual Result<double> occupation_time(double_pair domain, double duration,
+    //                                        double time_step = 0.01);
+    //
+    // /**
+    //  * @brief Computes the time-averaged mean squared displacement (TAMSD)
+    //  * @param duration The total simulation time
+    //  * @param delta The lag time for averaging
+    //  * @param quad_order The order of quadrature for integration (default: 10)
+    //  * @param time_step The time step for discretization (default: 0.01)
+    //  * @return Result containing the TAMSD value, or an Error
+    //  */
+    // virtual Result<double> tamsd(double duration, double delta,
+    //                              size_t quad_order = 10, double time_step = 0.01);
+    //
+    // /**
+    //  * @brief Computes the ensemble-averaged time-averaged MSD (EATAMSD)
+    //  * @param duration The total simulation time
+    //  * @param delta The lag time for averaging
+    //  * @param particles The number of Monte Carlo samples (default: 10000)
+    //  * @param quad_order The order of quadrature for integration (default: 10)
+    //  * @param time_step The time step for discretization (default: 0.01)
+    //  * @return Result containing the EATAMSD value, or an Error
+    //  */
+    // virtual Result<double> eatamsd(double duration, double delta,
+    //                                size_t particles = 10000, int quad_order = 10,
+    //                                double time_step = 0.01);
 };
 
 /**
@@ -407,19 +437,14 @@ struct Moment<T> {
      */
     auto raw_moment(size_t particles = 10000, double time_step = 0.01)
         -> Result<double> {
-        auto compute_func = [this](auto &proc) -> Result<double> {
-            auto traj = proc.simulate(m_duration);
-            if (!traj.has_value()) {
-                return Err(traj.error());
-            }
+        auto compute_func = [this]() -> double {
+            auto traj = process.simulate(m_duration);
             auto [t, x] = traj.value();
-            if (x.empty()) {
-                return Err(Error::InvalidArgument("Empty trajectory"));
-            }
+
             return std::pow(x.back(), m_order);
         };
 
-        return parallel_monte_carlo(particles, process, compute_func);
+        return parallel_monte_carlo(particles, compute_func);
     }
 
     /**
@@ -433,25 +458,16 @@ struct Moment<T> {
         // First compute the mean using raw moment of order 1
         Moment<T> mean_moment(m_duration, 1, process);
         auto mean_result = mean_moment.raw_moment(particles, time_step);
-        if (!mean_result.has_value()) {
-            return Err(mean_result.error());
-        }
         double mean = mean_result.value();
 
-        auto compute_func = [this, mean](auto &proc) -> Result<double> {
-            auto traj = proc.simulate(m_duration);
-            if (!traj.has_value()) {
-                return Err(traj.error());
-            }
-            auto [t, x] = traj.value();
-            if (x.empty()) {
-                return Err(Error::InvalidArgument("Empty trajectory"));
-            }
+        auto compute_func = [this, mean]() -> double {
+            auto traj = process.simulate(m_duration);
 
+            auto [t, x] = traj.value();
             return std::pow(x.back() - mean, m_order);
         };
 
-        return parallel_monte_carlo(particles, process, compute_func);
+        return parallel_monte_carlo(particles, compute_func);
     }
 };
 
@@ -479,32 +495,32 @@ auto PointProcess::central_moment(double duration, int order, size_t particles,
     return moment.central_moment(particles, time_step);
 }
 
-Result<Option<double>> PointProcess::fpt(double_pair domain,
-                                          double max_duration,
-                                          double time_step) {
-    auto fpt_obj = FirstPassageTime(*this, domain);
-    return fpt_obj.simulate(max_duration, time_step);
-}
-
-Result<double> PointProcess::occupation_time(double_pair domain,
-                                              double duration,
-                                              double time_step) {
-    return Err(Error::NotImplemented(
-        "occupation_time is not implemented for this process"));
-}
-
-Result<double> PointProcess::tamsd(double duration, double delta,
-                                   size_t quad_order, double time_step) {
-    return Err(Error::NotImplemented(
-        "tamsd is not implemented for this process"));
-}
-
-Result<double> PointProcess::eatamsd(double duration, double delta,
-                                     size_t particles, int quad_order,
-                                     double time_step) {
-    return Err(Error::NotImplemented(
-        "eatamsd is not implemented for this process"));
-}
+// Result<Option<double>> PointProcess::fpt(double_pair domain,
+//                                           double max_duration,
+//                                           double time_step) {
+//     auto fpt_obj = FirstPassageTime(*this, domain);
+//     return fpt_obj.simulate(max_duration, time_step);
+// }
+//
+// Result<double> PointProcess::occupation_time(double_pair domain,
+//                                               double duration,
+//                                               double time_step) {
+//     return Err(Error::NotImplemented(
+//         "occupation_time is not implemented for this process"));
+// }
+//
+// Result<double> PointProcess::tamsd(double duration, double delta,
+//                                    size_t quad_order, double time_step) {
+//     return Err(Error::NotImplemented(
+//         "tamsd is not implemented for this process"));
+// }
+//
+// Result<double> PointProcess::eatamsd(double duration, double delta,
+//                                      size_t particles, int quad_order,
+//                                      double time_step) {
+//     return Err(Error::NotImplemented(
+//         "eatamsd is not implemented for this process"));
+// }
 
 auto PointProcess::simulate(double duration) -> Result<vec_pair> {
     auto num_step = static_cast<size_t>(std::ceil(duration));
@@ -637,19 +653,14 @@ struct Moment<T> {
      * @return Result containing the raw moment value, or an Error
      */
     auto raw_moment(size_t particles = 10000) -> Result<double> {
-        auto compute_func = [this](auto &proc) -> Result<double> {
-            auto traj = proc.simulate(m_num_steps);
-            if (!traj.has_value()) {
-                return Err(traj.error());
-            }
+        auto compute_func = [this]() -> double {
+            auto traj = process.simulate(m_num_steps);
             auto [steps, positions] = traj.value();
-            if (positions.empty()) {
-                return Err(Error::InvalidArgument("Empty trajectory"));
-            }
+
             return std::pow(positions.back(), m_order);
         };
 
-        return parallel_monte_carlo(particles, process, compute_func);
+        return parallel_monte_carlo(particles, compute_func);
     }
 
     /**
@@ -666,19 +677,14 @@ struct Moment<T> {
         }
         double mean = mean_result.value();
 
-        auto compute_func = [this, mean](auto &proc) -> Result<double> {
-            auto traj = proc.simulate(m_num_steps);
-            if (!traj.has_value()) {
-                return Err(traj.error());
-            }
+        auto compute_func = [this, mean]() -> double {
+            auto traj = process.simulate(m_num_steps);
+
             auto [steps, positions] = traj.value();
-            if (positions.empty()) {
-                return Err(Error::InvalidArgument("Empty trajectory"));
-            }
             return std::pow(positions.back() - mean, m_order);
         };
 
-        return parallel_monte_carlo(particles, process, compute_func);
+        return parallel_monte_carlo(particles, compute_func);
     }
 };
 
@@ -734,7 +740,7 @@ public:
      *
      * @example
      * ```cpp
-     * BrownianMotion bm;
+     * Bm bm;
      * FirstPassageTime fpt(bm, {-2.0, 2.0});  // Valid interval
      * ```
      */

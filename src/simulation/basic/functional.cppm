@@ -35,7 +35,7 @@ import diffusionx.simulation.basic.utils;
  *
  * @example
  * ```cpp
- * BrownianMotion process;
+ * Bm process;
  * FirstPassageTime fpt(process, {-1.0, 1.0});
  * ```
  */
@@ -67,7 +67,7 @@ public:
    *
    * @example
    * ```cpp
-   * BrownianMotion bm;
+   * Bm bm;
    * FirstPassageTime fpt(bm, {-2.0, 2.0});  // Valid interval
    * ```
    */
@@ -123,7 +123,7 @@ public:
  *
  * @example
  * ```cpp
- * BrownianMotion process;
+ * Bm process;
  * OccupationTime ot(process, {-1.0, 1.0}, 10.0);
  * ```
  */
@@ -160,7 +160,7 @@ public:
    *
    * @example
    * ```cpp
-   * BrownianMotion bm;
+   * Bm bm;
    * OccupationTime ot(bm, {-1.5, 1.5}, 5.0);  // Valid parameters
    * ```
    */

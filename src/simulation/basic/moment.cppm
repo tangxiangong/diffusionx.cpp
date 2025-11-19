@@ -26,7 +26,7 @@ struct Moment {
     /**
      * @brief Default constructor
      */
-    Moment() = default;
+    Moment() = delete;
 
     /**
      * @brief Constructs a moment calculator with specified parameters
@@ -68,6 +68,22 @@ struct Moment {
      * @return Result containing the central moment value, or an Error
      */
     auto central_moment(size_t particles = 10000, double time_step = 0.01) -> Result<double> {
+        if (particles == 0) {
+            return Err(Error::InvalidArgument("The number of particles must be greater than 0"));
+        }
+        if (time_step <= 0) {
+            return Err(Error::InvalidArgument("The time step must be greater than 0"));
+        }
+        return Err(Error::NotImplemented("The method is not implemented"));
+    }
+
+    /**
+     * @brief Computes the MSD using Monte Carlo simulation
+     * @param particles The number of Monte Carlo samples (default: 10000)
+     * @param time_step The time step for discretization (default: 0.01)
+     * @return Result containing the MSD, or an Error
+     */
+    auto msd(size_t particles = 10000, double time_step = 0.01) -> Result<double> {
         if (particles == 0) {
             return Err(Error::InvalidArgument("The number of particles must be greater than 0"));
         }
