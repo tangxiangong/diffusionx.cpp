@@ -2,7 +2,6 @@ module;
 
 #include <format>
 #include <random>
-#include <type_traits>
 #include <vector>
 
 export module diffusionx.random.normal;
@@ -28,8 +27,7 @@ using std::vector;
  * @note Uses parallel generation for improved performance
  * @note Each thread uses its own thread-local generator for thread safety
  */
-export template<typename T = double>
-    requires std::is_floating_point_v<T>
+export template<Float T = double>
 auto randn(size_t n, T mean = 0, T stddev = 1) -> Result<vector<T> > {
     if (stddev <= 0) {
         return Err(Error::InvalidArgument(format(
@@ -57,8 +55,7 @@ auto randn(size_t n, T mean = 0, T stddev = 1) -> Result<vector<T> > {
  * 
  * @note Uses thread-local generator for thread safety
  */
-export template<typename T = double>
-    requires std::is_floating_point_v<T>
+export template<Float T = double>
 auto randn(T mean = 0, T stddev = 1) -> Result<T> {
     if (stddev <= 0) {
         return Err(Error::InvalidArgument(format(
@@ -79,8 +76,7 @@ auto randn(T mean = 0, T stddev = 1) -> Result<T> {
  * and perform arithmetic operations that preserve the normal distribution property.
  * The normal distribution is fundamental in statistics and probability theory.
  */
-export template<typename T>
-    requires std::is_floating_point_v<T>
+export template<Float T>
 class Normal {
     T m_mean = 0.0; ///< The mean (μ) of the distribution
     T m_stddev = 1.0; ///< The standard deviation (σ) of the distribution
@@ -127,6 +123,15 @@ public:
      */
     [[nodiscard]] auto sample(size_t n) const -> Result<vector<T> > {
         return randn(n, m_mean, m_stddev);
+    }
+
+    /**
+     * @brief Generates a sample from the normal distribution
+     * @return Result containing a vector of n samples, or an Error
+     *
+     */
+    [[nodiscard]] auto sample() const -> Result<T> {
+        return randn(m_mean, m_stddev);
     }
 
     /**
@@ -193,41 +198,41 @@ public:
     /**
      * @brief Adds a constant to a normal distribution
      * @param lhs The normal distribution
-     * @param a The constant to add
+     * @param drift The constant to add
      * @return A new normal distribution with shifted mean
      * 
-     * If X ~ N(μ, σ²), then X + a ~ N(μ + a, σ²).
+     * If X ~ N(μ, σ²), then X + a ~ N(μ + drift, σ²).
      */
-    friend auto operator+(const Normal &lhs, T a) -> Normal {
-        T mean = a + lhs.get_mean();
+    friend auto operator+(const Normal &lhs, T drift) -> Normal {
+        T mean = drift + lhs.get_mean();
         return Normal{mean, lhs.get_stddev()};
     }
 
     /**
      * @brief Adds a constant to a normal distribution (commutative)
-     * @param a The constant to add
+     * @param lhs The constant to add
      * @param rhs The normal distribution
      * @return A new normal distribution with shifted mean
      */
-    friend auto operator+(T a, const Normal &rhs) -> Normal { return rhs + a; }
+    friend auto operator+(T lhs, const Normal &rhs) -> Normal { return rhs + lhs; }
 
     /**
      * @brief Subtracts a constant from a normal distribution
      * @param lhs The normal distribution
-     * @param a The constant to subtract
+     * @param rhs The constant to subtract
      * @return A new normal distribution with shifted mean
      */
-    friend auto operator-(const Normal &lhs, T a) -> Normal {
-        return lhs + (-a);
+    friend auto operator-(const Normal &lhs, T rhs) -> Normal {
+        return lhs + (-rhs);
     }
 
     /**
      * @brief Subtracts a normal distribution from a constant
-     * @param a The constant
+     * @param lhs The constant
      * @param rhs The normal distribution to subtract
      * @return A new normal distribution representing the difference
      */
-    friend auto operator-(T a, const Normal &rhs) -> Normal {
-        return a + (-rhs);
+    friend auto operator-(T lhs, const Normal &rhs) -> Normal {
+        return lhs + (-rhs);
     }
 };

@@ -2,7 +2,6 @@ module;
 
 #include <format>
 #include <random>
-#include <type_traits>
 #include <vector>
 
 export module diffusionx.random.exponential;
@@ -27,8 +26,7 @@ using std::vector;
  * @note Uses parallel generation for improved performance
  * @note Each thread uses its own thread-local generator for thread safety
  */
-export template<typename T = double>
-    requires std::is_floating_point_v<T>
+export template<Float T = double>
 auto randexp(size_t n, T rate = 1.0) -> Result<vector<T> > {
     if (rate <= 0) {
         return Err(Error::InvalidArgument(
@@ -54,8 +52,7 @@ auto randexp(size_t n, T rate = 1.0) -> Result<vector<T> > {
  * 
  * @note Uses thread-local generator for thread safety
  */
-export template<typename T = double>
-    requires std::is_floating_point_v<T>
+export template<Float T = double>
 auto randexp(T rate = 1.0) -> Result<T> {
     if (rate <= 0) {
         return Err(Error::InvalidArgument(
@@ -75,8 +72,7 @@ auto randexp(T rate = 1.0) -> Result<T> {
  * The exponential distribution is commonly used to model waiting times between
  * events in a Poisson process.
  */
-export template<typename T = double>
-    requires std::is_floating_point_v<T>
+export template<Float T = double>
 class Exponential {
     T m_rate = 1.0; ///< The rate parameter (λ) of the distribution
 
@@ -115,5 +111,14 @@ public:
      */
     [[nodiscard]] auto sample(size_t n) const -> Result<vector<T> > {
         return randexp(n, m_rate);
+    }
+
+    /**
+     * @brief Generates a sample from the exponential distribution
+     * @return Result containing a vector of n samples, or an Error
+     *
+     */
+    [[nodiscard]] auto sample() const -> Result<T> {
+        return randexp(m_rate);
     }
 };

@@ -18,6 +18,8 @@ using std::numbers::pi;
 
 /**
  * @brief Validates the parameters of a stable distribution
+ *
+ * @tparam T The floating-point type for the parameters
  * @param alpha The stability parameter (must be in (0, 2])
  * @param beta The skewness parameter (must be in [-1, 1])
  * @param sigma The scale parameter (must be positive)
@@ -26,7 +28,8 @@ using std::numbers::pi;
  * This function checks that the parameters satisfy the constraints for a
  * valid stable distribution.
  */
-auto check_parameters(double alpha, double beta, double sigma) -> Result<bool> {
+template <Float T = double>
+auto check_parameters(T alpha, T beta, T sigma) -> Result<bool> {
     if (alpha <= 0 || alpha > 2) {
         return Err(Error::InvalidArgument(std::format(
             "The stable index `alpha` must be in (0, 2], but got {}", alpha)));
@@ -48,6 +51,8 @@ auto check_parameters(double alpha, double beta, double sigma) -> Result<bool> {
 
 /**
  * @brief Generates a sample from the standard stable distribution (α ≠ 1)
+ *
+ * @tparam T The floating-point type for the parameters
  * @param alpha The stability parameter (must be in (0, 2] and ≠ 1)
  * @param beta The skewness parameter (must be in [-1, 1])
  * @return A sample from the standard stable distribution
@@ -55,63 +60,75 @@ auto check_parameters(double alpha, double beta, double sigma) -> Result<bool> {
  * This function implements the Chambers-Mallows-Stuck algorithm for generating
  * samples from a stable distribution when α ≠ 1.
  */
-auto sample_standard(double alpha, double beta) -> double {
-    double half_pi = pi / 2;
-    double tmp = beta * tan(alpha * half_pi);
-    double v = rand(-half_pi, half_pi).value();
-    double w = randexp().value();
-    double b = atan(tmp) / alpha;
-    double s = pow(1 + (tmp * tmp), 1 / (2 * alpha));
-    double c1 = alpha * sin(v + b) / pow(cos(v), 1 / alpha);
-    double c2 = pow(cos(v - (alpha * (v + b))) / w, (1 - alpha) / alpha);
+template <Float T = double>
+auto sample_standard(T alpha, T beta) -> T {
+    T half_pi = pi / 2;
+    T tmp = beta * tan(alpha * half_pi);
+    T v = rand(-half_pi, half_pi).value();
+    T w = randexp().value();
+    T b = atan(tmp) / alpha;
+    T s = pow(1 + (tmp * tmp), 1 / (2 * alpha));
+    T c1 = alpha * sin(v + b) / pow(cos(v), 1 / alpha);
+    T c2 = pow(cos(v - (alpha * (v + b))) / w, (1 - alpha) / alpha);
     return s * c1 * c2;
 }
 
 /**
  * @brief Generates a sample from the standard stable distribution (α = 1)
+ *
+ * @tparam T The floating-point type for the parameters
  * @param beta The skewness parameter (must be in [-1, 1])
  * @return A sample from the standard stable distribution with α = 1
  * 
  * This function implements the special case algorithm for generating samples
  * from a stable distribution when α = 1 (Cauchy-like distribution).
  */
-auto sample_standard(double beta) -> double {
-    double half_pi = pi / 2;
-    double v = rand(-half_pi, half_pi).value();
-    double w = randexp().value();
-    double c1 = (half_pi + beta * v) * tan(v);
-    double tmp = half_pi * w * cos(v) / (half_pi + beta * v);
-    double c2 = log(tmp) * beta;
+template <Float T = double>
+auto sample_standard(T beta) -> T {
+    T half_pi = pi / 2;
+    T v = rand(-half_pi, half_pi).value();
+    T w = randexp().value();
+    T c1 = (half_pi + beta * v) * tan(v);
+    T tmp = half_pi * w * cos(v) / (half_pi + beta * v);
+    T c2 = log(tmp) * beta;
     return 2 * (c1 - c2) / pi;
 }
 
 /**
  * @brief Generates a sample from a stable distribution (α ≠ 1)
+ *
+ * @tparam T The floating-point type for the parameters
  * @param alpha The stability parameter
  * @param beta The skewness parameter
  * @param sigma The scale parameter
  * @param mu The location parameter
  * @return A sample from the stable distribution
  */
-auto sample(double alpha, double beta, double sigma, double mu) -> double {
-    double r = sample_standard(alpha, beta);
+template <Float T = double>
+auto sample(T alpha, T beta, T sigma, T mu) -> T {
+    T r = sample_standard(alpha, beta);
     return mu + (sigma * r);
 }
 
 /**
  * @brief Generates a sample from a stable distribution (α = 1)
+ *
+ * @tparam T The floating-point type for the parameters
  * @param beta The skewness parameter
  * @param sigma The scale parameter
  * @param mu The location parameter
  * @return A sample from the stable distribution with α = 1
  */
-auto sample(double beta, double sigma, double mu) -> double {
-    double r = sample_standard(beta);
+template <Float T = double>
+auto sample(T beta, T sigma, T mu) -> T {
+    T r = sample_standard(beta);
     return (sigma * r) + mu + (2 * beta * sigma * sigma * log(sigma) / pi);
 }
 
 /**
  * @brief Generates a single stable distributed random value
+ *
+ * @tparam T The floating-point type for the parameters
  * @param alpha The stability parameter (must be in (0, 2])
  * @param beta The skewness parameter (must be in [-1, 1])
  * @param sigma The scale parameter (must be positive)
@@ -123,8 +140,9 @@ auto sample(double beta, double sigma, double mu) -> double {
  * probability distributions that generalize the normal distribution and
  * are characterized by their stability under addition.
  */
-export auto rand_stable(double alpha, double beta = 0.0, double sigma = 1.0,
-                        double mu = 0.0) -> Result<double> {
+export template <Float T = double>
+auto rand_stable(T alpha, T beta = 0.0, T sigma = 1.0,
+                        T mu = 0.0) -> Result<T> {
     if (auto res = check_parameters(alpha, beta, sigma); !res) {
         return Err(res.error());
     }
@@ -136,6 +154,8 @@ export auto rand_stable(double alpha, double beta = 0.0, double sigma = 1.0,
 
 /**
  * @brief Generates a vector of stable distributed random values
+ *
+ * @tparam T The floating-point type for the parameters
  * @param n The number of values to generate
  * @param alpha The stability parameter (must be in (0, 2])
  * @param beta The skewness parameter (must be in [-1, 1])
@@ -146,24 +166,27 @@ export auto rand_stable(double alpha, double beta = 0.0, double sigma = 1.0,
  * This function generates n random values from a stable distribution with the
  * specified parameters. Uses parallel generation for improved performance.
  */
-export auto rand_stable(size_t n, double alpha, double beta = 0.0,
-                        double sigma = 1.0, double mu = 0.0)
-    -> Result<vector<double> > {
+export template <Float T>
+auto rand_stable(size_t n, T alpha, T beta = 0.0,
+                        T sigma = 1.0, T mu = 0.0)
+    -> Result<vector<T> > {
     if (auto res = check_parameters(alpha, beta, sigma); !res) {
         return Err(res.error());
     }
     if (alpha == 1) {
         auto sampler = [beta, sigma, mu]() { return sample(beta, sigma, mu); };
-        return Ok(parallel_generate<double>(n, sampler));
+        return Ok(parallel_generate<T>(n, sampler));
     }
     auto sampler = [alpha, beta, sigma, mu]() {
         return sample(alpha, beta, sigma, mu);
     };
-    return Ok(parallel_generate<double>(n, sampler));
+    return Ok(parallel_generate<T>(n, sampler));
 }
 
 /**
  * @brief Generates a single maximally skewed stable distributed random value
+ *
+ * @tparam T The floating-point type for the parameters
  * @param alpha The stability parameter (must be in (0, 1))
  * @return Result containing a maximally skewed stable distributed value, or an Error
  * 
@@ -171,7 +194,8 @@ export auto rand_stable(size_t n, double alpha, double beta = 0.0,
  * distribution (β = 1) with unit scale and zero location. This is a special
  * case often used in modeling heavy-tailed phenomena.
  */
-export auto rand_skew_stable(double alpha) -> Result<double> {
+export template<Float T>
+auto rand_skew_stable(T alpha) -> Result<T> {
     if (alpha <= 0 || alpha >= 1) {
         return Err(Error::InvalidArgument(std::format(
             "The stable index `alpha` must be in (0, 1), but got {}", alpha)));
@@ -181,6 +205,8 @@ export auto rand_skew_stable(double alpha) -> Result<double> {
 
 /**
  * @brief Generates a vector of maximally skewed stable distributed random values
+ *
+ * @tparam T The floating-point type for the parameters
  * @param n The number of values to generate
  * @param alpha The stability parameter (must be in (0, 1))
  * @return Result containing a vector of n maximally skewed stable distributed values, or an Error
@@ -188,13 +214,14 @@ export auto rand_skew_stable(double alpha) -> Result<double> {
  * This function generates n random values from a maximally skewed stable
  * distribution (β = 1) with unit scale and zero location.
  */
-export auto rand_skew_stable(size_t n, double alpha) -> Result<vector<double> > {
+export template<Float T>
+auto rand_skew_stable(size_t n, T alpha) -> Result<vector<T> > {
     if (alpha <= 0 || alpha >= 1) {
         return Err(Error::InvalidArgument(std::format(
             "The stable index `alpha` must be in (0, 1), but got {}", alpha)));
     }
     auto sampler = [alpha]() { return sample(alpha, 1.0, 1.0, 0.0); };
-    return Ok(parallel_generate<double>(n, sampler));
+    return Ok(parallel_generate<T>(n, sampler));
 }
 
 /**

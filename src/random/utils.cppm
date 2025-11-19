@@ -1,11 +1,22 @@
 module;
 
 #include <random>
+#include <concepts>
 #include <thread>
 #include <utility>
 #include <vector>
+#include <type_traits>
 
 export module diffusionx.random.utils;
+
+export template<typename T>
+concept Float = std::is_floating_point_v<T>;
+
+export template<typename T>
+concept UnsignedInt = std::is_unsigned_v<T>;
+
+export template<typename T>
+concept Real = std::is_floating_point_v<T> || std::is_integral_v<T>;
 
 using std::vector;
 
@@ -38,13 +49,14 @@ export inline auto generator() -> std::mt19937 {
  * @note For small values of n, fewer threads may be used for efficiency
  */
 export template<typename T, typename F>
+    requires (std::invocable<F> && std::same_as<std::invoke_result_t<F>, T>)
 auto parallel_generate(size_t n, F sampler) -> vector<T> {
     vector<T> result(n);
     if (n == 0) {
         return result;
     }
 
-    unsigned int num_threads = std::thread::hardware_concurrency();
+    size_t num_threads = std::thread::hardware_concurrency();
     if (num_threads == 0) {
         num_threads = 1; // Fallback if hardware_concurrency is not available
         // or returns 0
@@ -57,16 +69,11 @@ auto parallel_generate(size_t n, F sampler) -> vector<T> {
     vector<std::thread> threads;
     threads.reserve(num_threads);
 
-    size_t chunk_size = n / num_threads;
-    size_t remainder = n % num_threads;
+    size_t chunk_size = (n + num_threads - 1) / num_threads;
 
     for (unsigned int i = 0; i < num_threads; ++i) {
         size_t start = i * chunk_size;
-        size_t end = start + chunk_size;
-        if (i == num_threads - 1) {
-            end += remainder; // Last thread handles the remainder
-        }
-
+        size_t end = std::min(start + chunk_size, n);
         threads.emplace_back([&result, start, end, sampler]() mutable {
             for (size_t j = start; j < end; ++j) {
                 result[j] = sampler();
@@ -75,7 +82,8 @@ auto parallel_generate(size_t n, F sampler) -> vector<T> {
     }
 
     for (auto &thread: threads) {
-        thread.join();
+        if (thread.joinable())
+            thread.join();
     }
 
     return result;

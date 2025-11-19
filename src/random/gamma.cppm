@@ -2,7 +2,6 @@ module;
 
 #include <format>
 #include <random>
-#include <type_traits>
 #include <vector>
 
 export module diffusionx.random.gamma;
@@ -28,8 +27,7 @@ using std::vector;
  * @note Uses parallel generation for improved performance
  * @note Each thread uses its own thread-local generator for thread safety
  */
-export template<typename T = double>
-    requires std::is_floating_point_v<T>
+export template<Float T = double>
 auto rand_gamma(size_t n, T shape, T scale) -> Result<vector<T> > {
     if (shape <= 0) {
         return Err(Error::InvalidArgument(
@@ -64,8 +62,7 @@ auto rand_gamma(size_t n, T shape, T scale) -> Result<vector<T> > {
  * 
  * @note Uses thread-local generator for thread safety
  */
-export template<typename T = double>
-    requires std::is_floating_point_v<T>
+export template<Float T = double>
 auto rand_gamma(T shape, T scale) -> Result<T> {
     if (shape <= 0) {
         return Err(Error::InvalidArgument(
@@ -93,17 +90,16 @@ auto rand_gamma(T shape, T scale) -> Result<T> {
  * The gamma distribution is a versatile continuous probability distribution that
  * generalizes the exponential distribution and is commonly used in Bayesian statistics.
  */
-export template<typename T = double>
-    requires std::is_floating_point_v<T>
+export template<Float T = double>
 class Gamma {
-    T m_shape; ///< The shape parameter (α) of the distribution
-    T m_scale; ///< The scale parameter (β) of the distribution
+    T m_shape{}; ///< The shape parameter (α) of the distribution
+    T m_scale{}; ///< The scale parameter (β) of the distribution
 
 public:
     /**
-     * @brief Default constructor (parameters must be set before use)
+     * @brief The default constructor is not allowed to use.
      */
-    Gamma() = default;
+    Gamma() = delete;
 
     /**
      * @brief Constructs a gamma distribution with specified shape and scale
@@ -147,5 +143,14 @@ public:
      */
     [[nodiscard]] auto sample(size_t n) const -> Result<vector<T> > {
         return rand_gamma(n, m_shape, m_scale);
+    }
+
+    /**
+     * @brief Generates a sample from the gamma distribution
+     * @return Result containing a vector of n samples, or an Error
+     *
+     */
+    [[nodiscard]] auto sample() const -> Result<T> {
+        return rand_gamma(m_shape, m_scale);
     }
 };

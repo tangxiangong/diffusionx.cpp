@@ -15,7 +15,7 @@ using std::vector;
 
 /**
  * @brief Generates a vector of uniformly distributed random values
- * @tparam T The numeric type (floating-point or integral)
+ * @tparam T The real numeric type (floating-point or integral)
  * @param n The number of values to generate
  * @param a The lower bound of the distribution (inclusive for integers, inclusive for floats)
  * @param b The upper bound of the distribution (inclusive for integers, exclusive for floats)
@@ -28,8 +28,7 @@ using std::vector;
  * @note Uses parallel generation for improved performance
  * @note Each thread uses its own thread-local generator for thread safety
  */
-export template<typename T = double>
-    requires std::is_floating_point_v<T> || std::is_integral_v<T>
+export template<Real T = double>
 auto rand(size_t n, T a = 0, T b = 1) -> Result<vector<T> > {
     if (a > b) {
         return Err(Error::InvalidArgument(
@@ -68,8 +67,7 @@ auto rand(size_t n, T a = 0, T b = 1) -> Result<vector<T> > {
  * 
  * @note Uses thread-local generator for thread safety
  */
-export template<typename T = double>
-    requires std::is_floating_point_v<T> || std::is_integral_v<T>
+export template<Real T = double>
 auto rand(T a = 0, T b = 1) -> Result<T> {
     if (a > b) {
         return Err(Error::InvalidArgument(

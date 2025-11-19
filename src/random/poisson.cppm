@@ -26,8 +26,7 @@ using std::vector;
  * @note Uses parallel generation for improved performance
  * @note Each thread uses its own thread-local generator for thread safety
  */
-export template<typename T = unsigned int>
-    requires std::is_unsigned_v<T>
+export template<UnsignedInt T = unsigned int>
 auto rand_poisson(size_t n, double rate = 1.0) -> Result<vector<T> > {
     if (rate <= 0) {
         return Err(Error::InvalidArgument(
@@ -53,8 +52,7 @@ auto rand_poisson(size_t n, double rate = 1.0) -> Result<vector<T> > {
  * 
  * @note Uses thread-local generator for thread safety
  */
-export template<typename T = unsigned int>
-    requires std::is_unsigned_v<T>
+export template<UnsignedInt T = unsigned int>
 auto rand_poisson(double rate = 1.0) -> Result<T> {
     if (rate <= 0) {
         return Err(Error::InvalidArgument(
@@ -110,9 +108,19 @@ public:
      * This method generates n independent samples from the Poisson distribution
      * using the stored rate parameter.
      */
-    template<typename T = unsigned int>
-        requires std::is_unsigned_v<T>
+    template<UnsignedInt T = unsigned int>
     [[nodiscard]] auto sample(size_t n) const -> Result<vector<T> > {
         return rand_poisson<T>(n, m_rate);
+    }
+
+    /**
+     * @brief Generates a sample from the Poisson distribution
+     * @tparam T The unsigned integer type for the samples (default: unsigned int)
+     * @return Result containing a vector of n samples, or an Error
+     *
+     */
+    template<UnsignedInt T = unsigned int>
+    [[nodiscard]] auto sample() const -> Result<T> {
+        return rand_poisson<T>(m_rate);
     }
 };
