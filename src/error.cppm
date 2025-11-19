@@ -110,7 +110,7 @@ auto Ok(T &&value) -> std::expected<std::remove_reference_t<T>, Error> {
  * This function is used to create successful results for operations that don't return a value.
  */
 export inline auto Ok() -> std::expected<void, Error> {
-    return std::expected<void, Error>();
+    return {};
 }
 
 /**
