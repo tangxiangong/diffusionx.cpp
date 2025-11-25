@@ -13,6 +13,59 @@ import diffusionx.simulation.basic.utils;
 using std::vector;
 
 /**
+ * @brief Simulates the OU process Y(t).
+ * @param theta The decay rate θ
+ * @param sigma The diffusion coefficient σ
+ * @param start_position Initial position Y₀
+ * @param duration The total simulation time
+ * @param time_step The time step for discretization
+ * @return Result containing OU trajectory, or an Error
+ */
+Result<vec_pair> simulate_ou(double theta, double sigma, double start_position,
+                                           double duration, double time_step) {
+    if (auto result = check_duration_time_step(duration, time_step); !result) {
+        return Err(result.error());
+    }
+
+    auto num_steps = static_cast<size_t>(std::ceil(duration / time_step));
+    vector<double> t(num_steps + 1);
+    vector<double> x(num_steps + 1);
+
+    t[0] = 0.0;
+    x[0] = start_position;
+
+    double current_t = 0.0;
+    double current_x = start_position;
+
+    double scale = std::sqrt(time_step);
+
+    double mu;
+    double diffusivity;
+    double xi;
+
+    for (size_t i = 0; i < num_steps - 1; ++i) {
+        mu = -theta * current_x;
+        xi = randn();
+        diffusivity = sigma * xi * scale;
+        current_t += time_step;
+        current_x += mu * time_step + diffusivity;
+        t[i+1] = current_t;
+        x[i+1] = current_x;
+    }
+
+    double last_step = duration - current_t;
+    mu = -theta * current_x;
+    xi = randn();
+    diffusivity = sigma * xi * std::sqrt(last_step);
+    current_x += mu * last_step + diffusivity;
+    t[num_steps] = duration;
+    x[num_steps] = current_x;
+
+    return Ok(std::make_pair(std::move(t), std::move(x)));
+}
+
+
+/**
  * @brief Ornstein-Uhlenbeck process implementation
  *
  * This class implements the Ornstein-Uhlenbeck process, a mean-reverting
