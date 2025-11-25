@@ -13,12 +13,14 @@ module;
 #include <thread>
 #include <string>
 #include <optional>
+#include <format>
 
 export module diffusionx.simulation.basic.utils;
 
 import diffusionx.error;
 
 using std::vector;
+using std::format;
 
 /**
  * @brief Type alias for a pair of vectors representing time and position data
@@ -97,4 +99,30 @@ auto parallel_monte_carlo(size_t particles, F func) -> Result<double> {
     }
 
     return total_sum / static_cast<double>(particles);
+}
+
+export Result<void> check_duration_time_step(double duration, double time_step) {
+    if (duration <= 0.0) {
+        return Err(Error::InvalidArgument(format(
+            "The `duration` must be positive, got {duration}"
+        ))
+        );
+    }
+
+    if (time_step <= 0.0) {
+        return Err(Error::InvalidArgument(format(
+            "The `time_step` must be positive, got `{time_step}`"
+        ))
+        );
+    }
+
+    if (time_step > duration) {
+        return Err(Error::InvalidArgument(format(
+            "The `time_step` must be less than or equal to the `duration`, got `{time_step}` > `{duration}`"
+        ))
+        );
+    }
+
+    return Ok();
+
 }
