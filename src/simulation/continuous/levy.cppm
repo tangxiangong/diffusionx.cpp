@@ -104,7 +104,7 @@ public:
    * X(t + dt) = X(t) + S(α, β, σ * dt^(1/α), μ * dt)
    * where S denotes a stable random variable
    */
-  Result<vec_pair> simulate(double duration, double time_step = 0.01) override {
+  Result<vec_pair> simulate(double duration, double time_step) override {
     if (duration <= 0) {
       return Err(Error::InvalidArgument("Duration must be positive"));
     }
@@ -169,7 +169,7 @@ public:
  * This is a special case of the Lévy process with zero skewness,
  * commonly used in financial modeling and physics.
  */
-export class SymmetricLevyProcess : public Levy {
+export class SymmetricLevyProcess final : public Levy {
 public:
   /**
    * @brief Constructs symmetric Lévy process

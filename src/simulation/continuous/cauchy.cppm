@@ -31,7 +31,7 @@ using std::vector;
  * where C(t) is a Cauchy process with independent increments
  * C(t + s) - C(t) ~ Cauchy(0, σ√s) for s > 0
  */
-export class Cauchy : public ContinuousProcess {
+export class Cauchy final : public ContinuousProcess {
   double m_sigma = 1.0;          ///< Scale parameter σ > 0
   double m_start_position = 0.0; ///< Initial position
 
@@ -47,7 +47,7 @@ public:
    * @param start_position Initial position
    * @throws std::invalid_argument if sigma is not positive
    */
-  Cauchy(double sigma, double start_position = 0.0)
+  explicit Cauchy(double sigma, double start_position = 0.0)
       : m_sigma(sigma), m_start_position(start_position) {
     if (m_sigma <= 0.0) {
       throw std::invalid_argument("Scale parameter sigma must be positive");
@@ -78,7 +78,7 @@ public:
    * X(t + dt) = X(t) + Cauchy(0, σ√dt)
    * which is equivalent to Stable(1, 0, σ√dt, 0)
    */
-  Result<vec_pair> simulate(double duration, double time_step = 0.01) override {
+  Result<vec_pair> simulate(double duration, double time_step) override {
     if (duration <= 0) {
       return Err(Error::InvalidArgument("Duration must be positive"));
     }
@@ -86,7 +86,7 @@ public:
       return Err(Error::InvalidArgument("Time step must be positive"));
     }
 
-    size_t num_steps = static_cast<size_t>(std::ceil(duration / time_step));
+    auto num_steps = static_cast<size_t>(std::ceil(duration / time_step));
     vector<double> times(num_steps + 1);
     vector<double> positions(num_steps + 1);
 
@@ -103,25 +103,15 @@ public:
     if (!increments_result.has_value()) {
       return Err(increments_result.error());
     }
-    auto increments = increments_result.value();
+    auto const& increments = increments_result.value();
 
     // Simulate trajectory
     for (size_t i = 1; i <= num_steps; ++i) {
-      times[i] = i * time_step;
+      times[i] = static_cast<double>(i) * time_step;
       positions[i] = positions[i - 1] + increments[i - 1];
     }
 
     return Ok(std::make_pair(std::move(times), std::move(positions)));
-  }
-
-  /**
-   * @brief Checks if the process has finite moments
-   * @param order The moment order
-   * @return False for all orders ≥ 1 (Cauchy distribution has no finite
-   * moments)
-   */
-  [[nodiscard]] auto has_finite_moment(int order) const -> bool {
-    return order < 1;
   }
 };
 
@@ -131,7 +121,7 @@ public:
  * This class implements an asymmetric Cauchy process with skewness parameter β.
  * When β = 0, it reduces to the symmetric Cauchy process.
  */
-export class AsymmetricCauchy : public ContinuousProcess {
+export class AsymmetricCauchy final : public ContinuousProcess {
   double m_beta = 0.0;           ///< Skewness parameter β ∈ [-1, 1]
   double m_sigma = 1.0;          ///< Scale parameter σ > 0
   double m_start_position = 0.0; ///< Initial position
@@ -149,7 +139,7 @@ public:
    * @param start_position Initial position
    * @throws std::invalid_argument if parameters are invalid
    */
-  AsymmetricCauchy(double beta, double sigma = 1.0, double start_position = 0.0)
+  explicit AsymmetricCauchy(double beta, double sigma = 1.0, double start_position = 0.0)
       : m_beta(beta), m_sigma(sigma), m_start_position(start_position) {
     if (m_beta < -1.0 || m_beta > 1.0) {
       throw std::invalid_argument("Skewness parameter beta must be in [-1, 1]");
@@ -188,7 +178,7 @@ public:
    * Uses independent asymmetric Cauchy increments:
    * X(t + dt) = X(t) + Stable(1, β, σ√dt, 0)
    */
-  Result<vec_pair> simulate(double duration, double time_step = 0.01) override {
+  Result<vec_pair> simulate(double duration, double time_step) override {
     if (duration <= 0) {
       return Err(Error::InvalidArgument("Duration must be positive"));
     }
@@ -196,7 +186,7 @@ public:
       return Err(Error::InvalidArgument("Time step must be positive"));
     }
 
-    size_t num_steps = static_cast<size_t>(std::ceil(duration / time_step));
+    auto num_steps = static_cast<size_t>(std::ceil(duration / time_step));
     vector<double> times(num_steps + 1);
     vector<double> positions(num_steps + 1);
 
@@ -213,24 +203,14 @@ public:
     if (!increments_result.has_value()) {
       return Err(increments_result.error());
     }
-    auto increments = increments_result.value();
+    auto const& increments = increments_result.value();
 
     // Simulate trajectory
     for (size_t i = 1; i <= num_steps; ++i) {
-      times[i] = i * time_step;
+      times[i] = static_cast<double>(i) * time_step;
       positions[i] = positions[i - 1] + increments[i - 1];
     }
 
     return Ok(std::make_pair(std::move(times), std::move(positions)));
-  }
-
-  /**
-   * @brief Checks if the process has finite moments
-   * @param order The moment order
-   * @return False for all orders ≥ 1 (Cauchy distribution has no finite
-   * moments)
-   */
-  [[nodiscard]] auto has_finite_moment(int order) const -> bool {
-    return order < 1;
   }
 };

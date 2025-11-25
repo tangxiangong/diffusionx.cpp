@@ -25,7 +25,7 @@ using std::vector;
  * E[B(t)] = a + (b - a) * t / T
  * Var[B(t)] = t * (T - t) / T
  */
-export class BrownianBridge : public ContinuousProcess {
+export class BrownianBridge final : public ContinuousProcess {
   double m_start_value = 0.0; ///< Starting value B(0)
   double m_end_value = 0.0;   ///< Ending value B(T)
   double m_total_time = 1.0;  ///< Total time T
@@ -79,7 +79,7 @@ public:
    *
    * Uses the sequential conditioning method for exact simulation.
    */
-  Result<vec_pair> simulate(double duration, double time_step = 0.01) override {
+  Result<vec_pair> simulate(double duration, double time_step) override {
     if (duration <= 0) {
       return Err(Error::InvalidArgument("Duration must be positive"));
     }
@@ -91,7 +91,7 @@ public:
           "Duration must equal total_time for Brownian bridge"));
     }
 
-    size_t num_steps = static_cast<size_t>(std::ceil(duration / time_step));
+    auto num_steps = static_cast<size_t>(std::ceil(duration / time_step));
     vector<double> times(num_steps + 1);
     vector<double> positions(num_steps + 1);
 
@@ -103,55 +103,15 @@ public:
 
     // Fill in time grid
     for (size_t i = 1; i < num_steps; ++i) {
-      times[i] = i * time_step;
+      times[i] = static_cast<double>(i) * time_step;
     }
 
     // Generate Brownian bridge using sequential conditioning
-    auto result = generate_bridge_recursive(positions, times, 0, num_steps);
-    if (!result.has_value()) {
+    if (auto result = generate_bridge_recursive(positions, times, 0, num_steps); !result.has_value()) {
       return Err(result.error());
     }
 
     return Ok(std::make_pair(std::move(times), std::move(positions)));
-  }
-
-  /**
-   * @brief Computes the theoretical mean at time t
-   * @param t Time point
-   * @return The theoretical mean E[B(t)]
-   */
-  [[nodiscard]] auto theoretical_mean(double t) const -> double {
-    if (t < 0 || t > m_total_time) {
-      return std::numeric_limits<double>::quiet_NaN();
-    }
-    return m_start_value + (m_end_value - m_start_value) * t / m_total_time;
-  }
-
-  /**
-   * @brief Computes the theoretical variance at time t
-   * @param t Time point
-   * @return The theoretical variance Var[B(t)]
-   */
-  [[nodiscard]] auto theoretical_variance(double t) const -> double {
-    if (t < 0 || t > m_total_time) {
-      return std::numeric_limits<double>::quiet_NaN();
-    }
-    return t * (m_total_time - t) / m_total_time;
-  }
-
-  /**
-   * @brief Computes the covariance between B(s) and B(t)
-   * @param s First time point
-   * @param t Second time point
-   * @return The covariance Cov[B(s), B(t)]
-   */
-  [[nodiscard]] auto theoretical_covariance(double s, double t) const
-      -> double {
-    if (s < 0 || s > m_total_time || t < 0 || t > m_total_time) {
-      return std::numeric_limits<double>::quiet_NaN();
-    }
-    double min_st = std::min(s, t);
-    return min_st * (m_total_time - std::max(s, t)) / m_total_time;
   }
 
 private:
@@ -163,7 +123,7 @@ private:
    * @param right_idx Right boundary index
    * @return Result indicating success or error
    */
-  Result<void> generate_bridge_recursive(vector<double> &positions,
+  static Result<void> generate_bridge_recursive(vector<double> &positions,
                                          const vector<double> &times,
                                          size_t left_idx, size_t right_idx) {
     if (right_idx - left_idx <= 1) {

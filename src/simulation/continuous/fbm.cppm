@@ -32,7 +32,7 @@ using std::vector;
  * - H > 0.5: persistent (positively correlated increments)
  * - H < 0.5: anti-persistent (negatively correlated increments)
  */
-export class FBM : public ContinuousProcess {
+export class FBm final : public ContinuousProcess {
   double m_hurst = 0.5;          ///< Hurst parameter H ∈ (0, 1)
   double m_start_position = 0.0; ///< Initial position
 
@@ -40,7 +40,7 @@ public:
   /**
    * @brief Default constructor creating standard Brownian motion (H = 0.5)
    */
-  FBM() = default;
+  FBm() = default;
 
   /**
    * @brief Constructs fBm with specified parameters
@@ -48,7 +48,7 @@ public:
    * @param start_position Initial position
    * @throws std::invalid_argument if hurst is not in (0, 1)
    */
-  FBM(double hurst, double start_position = 0.0)
+  explicit FBm(double hurst, double start_position = 0.0)
       : m_hurst(hurst), m_start_position(start_position) {
     if (m_hurst <= 0.0 || m_hurst >= 1.0) {
       throw std::invalid_argument("Hurst parameter must be in (0, 1)");
@@ -78,7 +78,7 @@ public:
    * Uses the circulant embedding method with FFT for exact simulation
    * of the Gaussian process with the fBm covariance structure.
    */
-  Result<vec_pair> simulate(double duration, double time_step = 0.01) override {
+  Result<vec_pair> simulate(double duration, double time_step) override {
     if (duration <= 0) {
       return Err(Error::InvalidArgument("Duration must be positive"));
     }
@@ -86,7 +86,7 @@ public:
       return Err(Error::InvalidArgument("Time step must be positive"));
     }
 
-    size_t n = static_cast<size_t>(std::ceil(duration / time_step));
+    auto n = static_cast<size_t>(std::ceil(duration / time_step));
 
     // Generate fBm using circulant embedding
     auto fbm_result = generate_fbm_circulant_embedding(n, m_hurst);
@@ -94,7 +94,7 @@ public:
       return Err(fbm_result.error());
     }
 
-    auto fbm_increments = fbm_result.value();
+    auto const& fbm_increments = fbm_result.value();
 
     // Create time and position vectors
     vector<double> times(n + 1);
@@ -104,7 +104,7 @@ public:
     positions[0] = m_start_position;
 
     for (size_t i = 1; i <= n; ++i) {
-      times[i] = i * time_step;
+      times[i] = static_cast<double>(i) * time_step;
       positions[i] = m_start_position +
                      fbm_increments[i - 1] * std::pow(time_step, m_hurst);
     }
@@ -119,7 +119,7 @@ private:
    * @param hurst Hurst parameter
    * @return Result containing fBm values, or an Error
    */
-  Result<vector<double>> generate_fbm_circulant_embedding(size_t n,
+  static Result<vector<double>> generate_fbm_circulant_embedding(size_t n,
                                                           double hurst) {
     // Compute covariance function for fBm
     auto covariance = [hurst](double k) -> double {
@@ -147,7 +147,7 @@ private:
       c_complex[i] = complex<double>(c[i], 0.0);
     }
 
-    fftw_complex *in = reinterpret_cast<fftw_complex *>(c_complex.data());
+    auto in = reinterpret_cast<fftw_complex *>(c_complex.data());
     fftw_complex *out = fftw_alloc_complex(m);
     fftw_plan plan = fftw_plan_dft_1d(static_cast<int>(m), in, out,
                                       FFTW_FORWARD, FFTW_ESTIMATE);
@@ -183,7 +183,7 @@ private:
     }
 
     // Inverse FFT
-    fftw_complex *z_in = reinterpret_cast<fftw_complex *>(z.data());
+    auto z_in = reinterpret_cast<fftw_complex *>(z.data());
     fftw_complex *z_out = fftw_alloc_complex(m);
     fftw_plan inv_plan = fftw_plan_dft_1d(static_cast<int>(m), z_in, z_out,
                                           FFTW_BACKWARD, FFTW_ESTIMATE);

@@ -21,7 +21,7 @@ using std::vector;
  * throughout the interval (0, T). This is a special case of the Brownian bridge
  * where both endpoints are 0 and the process stays positive.
  */
-export class BrownianExcursion : public ContinuousProcess {
+export class BrownianExcursion final : public ContinuousProcess {
   double m_total_time = 1.0; ///< Total time T
 
 public:
@@ -57,7 +57,7 @@ public:
    *
    * Uses rejection sampling on Brownian bridges.
    */
-  Result<vec_pair> simulate(double duration, double time_step = 0.01) override {
+  Result<vec_pair> simulate(double duration, double time_step) override {
     if (duration <= 0) {
       return Err(Error::InvalidArgument("Duration must be positive"));
     }
@@ -71,7 +71,7 @@ public:
 
     // Use rejection sampling
     BrownianBridge bridge(0.0, 0.0, m_total_time);
-    const int max_attempts = 10000;
+    constexpr int max_attempts = 10000;
 
     for (int attempt = 0; attempt < max_attempts; ++attempt) {
       auto bridge_result = bridge.simulate(duration, time_step);

@@ -13,6 +13,48 @@ import diffusionx.simulation.basic.utils;
 using std::vector;
 
 /**
+   * @brief Simulates the OU process Y(t) with θ = 1, σ = 1
+   * @param start_position Initial position Y₀
+   * @param duration The total simulation time
+   * @param time_step The time step for discretization
+   * @return Result containing OU trajectory, or an Error
+   */
+Result<vector<double>> simulate_ou_process(double start_position,
+    double duration,
+                                           double time_step) {
+    auto num_steps = static_cast<size_t>(std::ceil(duration / time_step));
+    vector<double> y_trajectory(num_steps + 1);
+
+    // Initialize OU process
+    y_trajectory[0] = start_position;
+
+    // OU parameters: θ = 1, σ = 1
+    double theta = 1.0;
+    double sigma = 1.0;
+
+    // Precompute constants for exact discretization
+    double exp_theta_dt = std::exp(-theta * time_step);
+    double var_coeff =
+        sigma *
+        std::sqrt((1.0 - std::exp(-2.0 * theta * time_step)) / (2.0 * theta));
+
+    // Generate random increments for OU process
+    auto ou_noise_result = randn(num_steps, 0.0, 1.0);
+    if (!ou_noise_result.has_value()) {
+        return Err(ou_noise_result.error());
+    }
+    auto ou_noise = ou_noise_result.value();
+
+    // Simulate OU trajectory using exact discretization
+    for (size_t i = 1; i <= num_steps; ++i) {
+        y_trajectory[i] =
+            y_trajectory[i - 1] * exp_theta_dt + var_coeff * ou_noise[i - 1];
+    }
+
+    return Ok(std::move(y_trajectory));
+}
+
+/**
  * @brief Brownian yet non-Gaussian (BnG) process implementation
  *
  * The BnG process is a stochastic process that exhibits Brownian scaling
@@ -32,7 +74,7 @@ using std::vector;
  * - Non-Gaussian displacement distributions
  * - Exponential tails in displacement probability density
  */
-export class BrownianNonGaussian : public ContinuousProcess {
+export class BnG final : public ContinuousProcess {
   double m_start_position = 0.0;    ///< Initial position r₀
   double m_ou_start_position = 1.0; ///< Initial OU process value Y₀
 
@@ -40,14 +82,14 @@ public:
   /**
    * @brief Default constructor creating standard BnG process
    */
-  BrownianNonGaussian() = default;
+  BnG() = default;
 
   /**
    * @brief Constructs BnG process with specified parameters
    * @param start_position Initial position r₀
    * @param ou_start_position Initial OU process value Y₀
    */
-  BrownianNonGaussian(double start_position, double ou_start_position)
+  BnG(double start_position, double ou_start_position)
       : m_start_position(start_position),
         m_ou_start_position(ou_start_position) {}
 
@@ -78,7 +120,7 @@ public:
    * 2. Use |Y(t)| as time-varying diffusion coefficient
    * 3. Generate position increments with √(2|Y(t)|dt) * Z
    */
-  Result<vec_pair> simulate(double duration, double time_step = 0.01) override {
+  Result<vec_pair> simulate(double duration, double time_step) override {
     if (duration <= 0) {
       return Err(Error::InvalidArgument("Duration must be positive"));
     }
@@ -86,7 +128,7 @@ public:
       return Err(Error::InvalidArgument("Time step must be positive"));
     }
 
-    size_t num_steps = static_cast<size_t>(std::ceil(duration / time_step));
+    auto num_steps = static_cast<size_t>(std::ceil(duration / time_step));
     vector<double> times(num_steps + 1);
     vector<double> positions(num_steps + 1);
 
@@ -95,11 +137,11 @@ public:
     positions[0] = m_start_position;
 
     // Simulate OU process Y(t) with θ = 1, σ = 1
-    auto ou_result = simulate_ou_process(duration, time_step);
+    auto ou_result = simulate_ou_process(m_ou_start_position, duration, time_step);
     if (!ou_result.has_value()) {
       return Err(ou_result.error());
     }
-    auto ou_trajectory = ou_result.value();
+    const auto& ou_trajectory = ou_result.value();
 
     // Generate Brownian increments
     auto noise_result = randn(num_steps, 0.0, 1.0);
@@ -110,7 +152,7 @@ public:
 
     // Simulate BnG trajectory
     for (size_t i = 1; i <= num_steps; ++i) {
-      times[i] = i * time_step;
+      times[i] = static_cast<double>(i) * time_step;
 
       // Time-varying diffusion coefficient D(t) = |Y(t)|
       double diffusion_coeff = std::abs(ou_trajectory[i]);
@@ -122,47 +164,5 @@ public:
     }
 
     return Ok(std::make_pair(std::move(times), std::move(positions)));
-  }
-
-private:
-  /**
-   * @brief Simulates the OU process Y(t) with θ = 1, σ = 1
-   * @param duration The total simulation time
-   * @param time_step The time step for discretization
-   * @return Result containing OU trajectory, or an Error
-   */
-  Result<vector<double>> simulate_ou_process(double duration,
-                                             double time_step) {
-    size_t num_steps = static_cast<size_t>(std::ceil(duration / time_step));
-    vector<double> y_trajectory(num_steps + 1);
-
-    // Initialize OU process
-    y_trajectory[0] = m_ou_start_position;
-
-    // OU parameters: θ = 1, σ = 1
-    double theta = 1.0;
-    double sigma = 1.0;
-
-    // Precompute constants for exact discretization
-    double exp_theta_dt = std::exp(-theta * time_step);
-    double mean_coeff = 1.0 - exp_theta_dt;
-    double var_coeff =
-        sigma *
-        std::sqrt((1.0 - std::exp(-2.0 * theta * time_step)) / (2.0 * theta));
-
-    // Generate random increments for OU process
-    auto ou_noise_result = randn(num_steps, 0.0, 1.0);
-    if (!ou_noise_result.has_value()) {
-      return Err(ou_noise_result.error());
-    }
-    auto ou_noise = ou_noise_result.value();
-
-    // Simulate OU trajectory using exact discretization
-    for (size_t i = 1; i <= num_steps; ++i) {
-      y_trajectory[i] =
-          y_trajectory[i - 1] * exp_theta_dt + var_coeff * ou_noise[i - 1];
-    }
-
-    return Ok(std::move(y_trajectory));
   }
 };

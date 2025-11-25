@@ -28,7 +28,7 @@ using std::vector;
  * - σ > 0 is the volatility parameter
  * - W(t) is a standard Brownian motion
  */
-export class OrnsteinUhlenbeck : public ContinuousProcess {
+export class OrnsteinUhlenbeck final : public ContinuousProcess {
   double m_theta = 1.0;          ///< Mean reversion speed
   double m_mu = 0.0;             ///< Long-term mean
   double m_sigma = 1.0;          ///< Volatility parameter
@@ -97,7 +97,7 @@ public:
    * X(t + dt) = X(t) * exp(-θ * dt) + μ * (1 - exp(-θ * dt)) + σ * √((1 -
    * exp(-2θ * dt)) / (2θ)) * Z where Z ~ N(0, 1)
    */
-  Result<vec_pair> simulate(double duration, double time_step = 0.01) override {
+  Result<vec_pair> simulate(double duration, double time_step) override {
     if (duration <= 0) {
       return Err(Error::InvalidArgument("Duration must be positive"));
     }

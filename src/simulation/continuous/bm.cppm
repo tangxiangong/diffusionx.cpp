@@ -1,7 +1,6 @@
 module;
 
 #include <cmath>
-#include <optional>
 #include <vector>
 
 export module diffusionx.simulation.continuous.bm;
@@ -27,11 +26,11 @@ using std::vector;
  *
  * where D is the diffusion coefficient and W(t) is a standard Wiener process.
  */
-export class Bm : public ContinuousProcess {
+export class Bm final : public ContinuousProcess {
     double m_start_position = 0.0;        ///< Initial position of the process
     double m_diffusion_coefficient = 0.5; ///< Diffusion coefficient (D)
 
-public:
+  public:
     /**
      * @brief Default constructor creating standard Brownian motion
      *
@@ -104,7 +103,7 @@ public:
 
         // Generate increments
         auto increments_result =
-            randn(num_steps-1, 0.0,
+            randn(num_steps - 1, 0.0,
                   std::sqrt(2.0 * m_diffusion_coefficient * time_step));
         if (!increments_result.has_value()) {
             return Err(increments_result.error());
@@ -120,7 +119,9 @@ public:
         }
 
         double last_step = duration - current_t;
-        double increment = randn(0.0, std::sqrt(2.0 * m_diffusion_coefficient * last_step)).value();
+        double increment =
+            randn(0.0, std::sqrt(2.0 * m_diffusion_coefficient * last_step))
+                .value();
         current_x += increment;
         times.back() = duration;
         positions.back() = current_x;
@@ -141,20 +142,22 @@ public:
 
         // Generate increments
         auto increments_result =
-            randn(num_steps-1, 0.0,
+            randn(num_steps - 1, 0.0,
                   std::sqrt(2.0 * m_diffusion_coefficient * time_step));
         if (!increments_result.has_value()) {
             return Err(increments_result.error());
         }
-        auto &increments = increments_result.value();
 
         // Simulate trajectory
-        for (const auto increment: increments) {
+        for (auto &increments = increments_result.value(); const auto increment : increments) {
             current_x += increment;
         }
 
-        double last_step = duration - static_cast<double>(num_steps-1) * time_step;
-        double increment = randn(0.0, std::sqrt(2.0 * m_diffusion_coefficient * last_step)).value();
+        double last_step =
+            duration - static_cast<double>(num_steps - 1) * time_step;
+        double increment =
+            randn(0.0, std::sqrt(2.0 * m_diffusion_coefficient * last_step))
+                .value();
         current_x += increment;
 
         return Ok(current_x - m_start_position);
@@ -165,15 +168,18 @@ public:
     //  * @param domain The domain boundaries as a pair (lower, upper)
     //  * @param max_duration Maximum simulation time
     //  * @param time_step The time step for discretization
-    //  * @return Result containing an optional FPT (None if no passage occurs), or
+    //  * @return Result containing an optional FPT (None if no passage occurs),
+    //  or
     //  * an Error
     //  */
-    // Result<Option<double>> fpt(double_pair domain, double max_duration = 1000,
+    // Result<Option<double>> fpt(double_pair domain, double max_duration =
+    // 1000,
     //                            double time_step = 0.01) override {
     //     auto [lower, upper] = domain;
     //     if (lower >= upper) {
     //         return Err(Error::InvalidArgument(
-    //             "Invalid domain: lower bound must be less than upper bound"));
+    //             "Invalid domain: lower bound must be less than upper
+    //             bound"));
     //     }
     //
     //     auto traj_result = simulate(max_duration, time_step);
@@ -204,7 +210,8 @@ public:
     //     auto [lower, upper] = domain;
     //     if (lower >= upper) {
     //         return Err(Error::InvalidArgument(
-    //             "Invalid domain: lower bound must be less than upper bound"));
+    //             "Invalid domain: lower bound must be less than upper
+    //             bound"));
     //     }
     //
     //     auto traj_result = simulate(duration, time_step);

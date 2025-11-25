@@ -2,7 +2,6 @@ module;
 
 #include <cmath>
 #include <functional>
-#include <random>
 #include <vector>
 
 export module diffusionx.simulation.continuous.langevin;
@@ -28,7 +27,7 @@ using std::vector;
  * - W(t) is the Wiener process (Brownian motion)
  */
 export template <typename DriftFunc, typename DiffusionFunc>
-class Langevin : public ContinuousProcess {
+class Langevin final : public ContinuousProcess {
   static_assert(std::is_invocable_r_v<double, DriftFunc, double, double>,
                 "DriftFunc must be callable with (double, double) -> double");
   static_assert(
@@ -87,7 +86,7 @@ public:
    * X(t + dt) = X(t) + f(X(t), t) * dt + g(X(t), t) * sqrt(dt) * Z
    * where Z ~ N(0, 1)
    */
-  Result<vec_pair> simulate(double duration, double time_step = 0.01) override {
+  Result<vec_pair> simulate(double duration, double time_step) override {
     if (duration <= 0) {
       return Err(Error::InvalidArgument("Duration must be positive"));
     }
@@ -138,7 +137,7 @@ public:
  * - L_α(t) is the α-stable process
  */
 export template <typename DriftFunc, typename DiffusionFunc>
-class GeneralizedLangevin : public ContinuousProcess {
+class GeneralizedLangevin final : public ContinuousProcess {
   static_assert(std::is_invocable_r_v<double, DriftFunc, double, double>,
                 "DriftFunc must be callable with (double, double) -> double");
   static_assert(
@@ -189,7 +188,7 @@ public:
    * @param time_step The time step for discretization
    * @return Result containing time and position vectors, or an Error
    */
-  Result<vec_pair> simulate(double duration, double time_step = 0.01) override {
+  Result<vec_pair> simulate(double duration, double time_step) override {
     if (duration <= 0) {
       return Err(Error::InvalidArgument("Duration must be positive"));
     }
@@ -237,7 +236,7 @@ public:
  * where S(t) is the α-stable subordinator.
  */
 export template <typename DriftFunc, typename DiffusionFunc>
-class SubordinatedLangevin : public ContinuousProcess {
+class SubordinatedLangevin final : public ContinuousProcess {
   static_assert(std::is_invocable_r_v<double, DriftFunc, double, double>,
                 "DriftFunc must be callable with (double, double) -> double");
   static_assert(
@@ -288,7 +287,7 @@ public:
    * @param time_step The time step for discretization
    * @return Result containing time and position vectors, or an Error
    */
-  Result<vec_pair> simulate(double duration, double time_step = 0.01) override {
+  Result<vec_pair> simulate(double duration, double time_step) override {
     if (duration <= 0) {
       return Err(Error::InvalidArgument("Duration must be positive"));
     }

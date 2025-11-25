@@ -23,7 +23,7 @@ using std::vector;
  * distribution ψ(τ) ~ τ^(-1-α) with 0 < α < 1. The flight length is
  * proportional to the flight time: l = vτ, where v is the constant velocity.
  */
-export class LevyWalk : public ContinuousProcess {
+export class LevyWalk final : public ContinuousProcess {
   double m_alpha = 0.5;          ///< Waiting time distribution exponent
   double m_velocity = 1.0;       ///< Constant velocity
   double m_start_position = 0.0; ///< Starting position
@@ -85,7 +85,7 @@ public:
    * 3. Move with constant velocity during each flight
    * 4. Interpolate to regular time grid
    */
-  Result<vec_pair> simulate(double duration, double time_step = 0.01) override {
+  Result<vec_pair> simulate(double duration, double time_step) override {
     if (duration <= 0) {
       return Err(Error::InvalidArgument("Duration must be positive"));
     }
@@ -152,8 +152,8 @@ private:
    * @param event_positions Vector of event positions
    * @return Interpolated position
    */
-  double interpolate_position(double t, const vector<double> &event_times,
-                              const vector<double> &event_positions) const {
+  static double interpolate_position(double t, const vector<double> &event_times,
+                              const vector<double> &event_positions) {
     if (t <= event_times[0]) {
       return event_positions[0];
     }
@@ -184,7 +184,7 @@ private:
  * This is a generalization of Lévy walk where both waiting times and jump sizes
  * can follow heavy-tailed distributions.
  */
-export class CoupledCTRW : public ContinuousProcess {
+export class CoupledCTRW final : public ContinuousProcess {
   double m_alpha = 0.5;          ///< Waiting time distribution exponent
   double m_beta = 1.5;           ///< Jump size distribution exponent
   double m_start_position = 0.0; ///< Starting position
@@ -198,7 +198,7 @@ public:
   /**
    * @brief Constructs a coupled CTRW with specified parameters
    * @param alpha Waiting time distribution exponent (0 < α < 1)
-   * @param beta Jump size distribution exponent (0 < β ≤ 2)
+   * @param beta Jump length distribution exponent (0 < β ≤ 2)
    * @param start_position Starting position
    * @throws std::invalid_argument if parameters are invalid
    */
@@ -238,7 +238,7 @@ public:
    * @param time_step The time step for discretization
    * @return Result containing time and position vectors, or an Error
    */
-  Result<vec_pair> simulate(double duration, double time_step = 0.01) override {
+  Result<vec_pair> simulate(double duration, double time_step) override {
     if (duration <= 0) {
       return Err(Error::InvalidArgument("Duration must be positive"));
     }
@@ -305,9 +305,9 @@ private:
    * @param event_positions Vector of event positions
    * @return Interpolated position
    */
-  double
+  static double
   interpolate_position_constant(double t, const vector<double> &event_times,
-                                const vector<double> &event_positions) const {
+                                const vector<double> &event_positions) {
     if (t <= event_times[0]) {
       return event_positions[0];
     }

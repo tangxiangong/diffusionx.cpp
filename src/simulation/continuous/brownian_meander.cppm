@@ -21,7 +21,7 @@ using std::vector;
  * over a finite time interval [0, T]. Unlike the excursion, it doesn't
  * necessarily end at 0.
  */
-export class BrownianMeander : public ContinuousProcess {
+export class BrownianMeander final : public ContinuousProcess {
   double m_total_time = 1.0; ///< Total time T
 
 public:
@@ -57,7 +57,7 @@ public:
    *
    * Uses the reflection principle and rejection sampling.
    */
-  Result<vec_pair> simulate(double duration, double time_step = 0.01) override {
+  Result<vec_pair> simulate(double duration, double time_step) override {
     if (duration <= 0) {
       return Err(Error::InvalidArgument("Duration must be positive"));
     }
@@ -69,17 +69,17 @@ public:
           "Duration must equal total_time for Brownian meander"));
     }
 
-    size_t num_steps = static_cast<size_t>(std::ceil(duration / time_step));
+    auto num_steps = static_cast<size_t>(std::ceil(duration / time_step));
     vector<double> times(num_steps + 1);
     vector<double> positions(num_steps + 1);
 
     // Initialize time grid
     for (size_t i = 0; i <= num_steps; ++i) {
-      times[i] = i * time_step;
+      times[i] = static_cast<double>(i) * time_step;
     }
 
     // Use rejection sampling on Brownian motion
-    const int max_attempts = 10000;
+    constexpr int max_attempts = 10000;
 
     for (int attempt = 0; attempt < max_attempts; ++attempt) {
       // Generate Brownian motion increments

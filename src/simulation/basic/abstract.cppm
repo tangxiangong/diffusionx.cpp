@@ -39,15 +39,18 @@ export struct ContinuousProcess {
      * a single trajectory of the stochastic process.
      */
     virtual Result<vec_pair> simulate(double duration,
-                                      double time_step = 0.01) = 0;
+                                      double time_step) = 0;
+    Result<vec_pair> simulate(double duration) { return simulate(duration, 0.01); }
 
-    virtual Result<double> displacement(double duration, double time_step = 0.01);
+    virtual Result<double> displacement(double duration, double time_step);
+    Result<double> displacement(double duration) { return displacement(duration, 0.01); }
 
     // TODO: 应该是纯虚
     virtual double start() {
         return 0.0;
     };
-    virtual Result<double> end(double duration, double time_step = 0.01);
+    virtual Result<double> end(double duration, double time_step);
+    Result<double> end(double duration) { return end(duration, 0.01); }
 
     /**
      * @brief Computes the mean of the process at a given time
@@ -56,8 +59,10 @@ export struct ContinuousProcess {
      * @param time_step The time step for discretization (default: 0.01)
      * @return Result containing the mean value, or an Error
      */
-    virtual Result<double> mean(double duration, size_t particles = 10000,
-                                double time_step = 0.01);
+    virtual Result<double> mean(double duration, size_t particles,
+                                double time_step);
+    Result<double> mean(double duration) { return mean(duration, 10000, 0.01); }
+    Result<double> mean(double duration, size_t particles) { return mean(duration, particles, 0.01); }
 
     /**
      * @brief Computes the mean squared displacement (MSD) at a given time
@@ -66,8 +71,10 @@ export struct ContinuousProcess {
      * @param time_step The time step for discretization (default: 0.01)
      * @return Result containing the MSD value, or an Error
      */
-    virtual Result<double> msd(double duration, size_t particles = 10000,
-                               double time_step = 0.01);
+    virtual Result<double> msd(double duration, size_t particles,
+                               double time_step);
+    Result<double> msd(double duration) { return msd(duration, 10000, 0.01); }
+    Result<double> msd(double duration, size_t particles) { return msd(duration, particles, 0.01); }
 
     /**
      * @brief Computes the raw moment of the process at a given time
@@ -78,8 +85,10 @@ export struct ContinuousProcess {
      * @return Result containing the raw moment value, or an Error
      */
     virtual Result<double> raw_moment(double duration, int order,
-                                      size_t particles = 10000,
-                                      double time_step = 0.01);
+                                      size_t particles,
+                                      double time_step);
+    Result<double> raw_moment(double duration, int order) { return raw_moment(duration, order, 10000, 0.01); }
+    Result<double> raw_moment(double duration, int order, size_t particles) { return raw_moment(duration, order, particles, 0.01); }
 
     /**
      * @brief Computes the central moment of the process at a given time
@@ -90,8 +99,10 @@ export struct ContinuousProcess {
      * @return Result containing the central moment value, or an Error
      */
     virtual Result<double> central_moment(double duration, int order,
-                                          size_t particles = 10000,
-                                          double time_step = 0.01);
+                                          size_t particles,
+                                          double time_step);
+    Result<double> central_moment(double duration, int order) { return central_moment(duration, order, 10000, 0.01); }
+    Result<double> central_moment(double duration, int order, size_t particles) { return central_moment(duration, order, particles, 0.01); }
 
     // /**
     //  * @brief Computes the first passage time (FPT) for a given domain
@@ -323,8 +334,10 @@ public:
      * @param time_step The time step for discretization (default: 0.01)
      * @return Result containing the mean value, or an Error
      */
-    virtual Result<double> mean(double duration, size_t particles = 10000,
-                                double time_step = 0.01);
+    virtual Result<double> mean(double duration, size_t particles,
+                                double time_step);
+    Result<double> mean(double duration) { return mean(duration, 10000, 0.01); }
+    Result<double> mean(double duration, size_t particles) { return mean(duration, particles, 0.01); }
 
     /**
      * @brief Computes the mean squared displacement (MSD) at a given time
@@ -333,8 +346,10 @@ public:
      * @param time_step The time step for discretization (default: 0.01)
      * @return Result containing the MSD value, or an Error
      */
-    virtual Result<double> msd(double duration, size_t particles = 10000,
-                               double time_step = 0.01);
+    virtual Result<double> msd(double duration, size_t particles,
+                               double time_step);
+    Result<double> msd(double duration) { return msd(duration, 10000, 0.01); }
+    Result<double> msd(double duration, size_t particles) { return msd(duration, particles, 0.01); }
 
     /**
      * @brief Computes the raw moment of the process at a given time
@@ -345,8 +360,10 @@ public:
      * @return Result containing the raw moment value, or an Error
      */
     virtual Result<double> raw_moment(double duration, int order,
-                                      size_t particles = 10000,
-                                      double time_step = 0.01);
+                                      size_t particles,
+                                      double time_step);
+    Result<double> raw_moment(double duration, int order) { return raw_moment(duration, order, 10000, 0.01); }
+    Result<double> raw_moment(double duration, int order, size_t particles) { return raw_moment(duration, order, particles, 0.01); }
 
     /**
      * @brief Computes the central moment of the process at a given time
@@ -357,8 +374,10 @@ public:
      * @return Result containing the central moment value, or an Error
      */
     virtual Result<double> central_moment(double duration, int order,
-                                          size_t particles = 10000,
-                                          double time_step = 0.01);
+                                          size_t particles,
+                                          double time_step);
+    Result<double> central_moment(double duration, int order) { return central_moment(duration, order, 10000, 0.01); }
+    Result<double> central_moment(double duration, int order, size_t particles) { return central_moment(duration, order, particles, 0.01); }
 
     // /**
     //  * @brief Computes the first passage time (FPT) for a given domain

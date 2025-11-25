@@ -3,7 +3,7 @@ module;
 #include <cmath>
 #include <vector>
 
-export module diffusionx.simulation.continuous.geometric_brownian_motion;
+export module diffusionx.simulation.continuous.gbm;
 
 import diffusionx.error;
 import diffusionx.random.normal;
@@ -30,7 +30,7 @@ using std::vector;
  * - W(t) is a standard Brownian motion
  * - S(0) is the initial value
  */
-export class GeometricBrownianMotion : public ContinuousProcess {
+export class GeometricBm final : public ContinuousProcess {
   double m_start_position = 1.0; ///< Initial value S(0)
   double m_mu = 0.0;             ///< Drift parameter μ
   double m_sigma = 1.0;          ///< Volatility parameter σ
@@ -39,7 +39,7 @@ public:
   /**
    * @brief Default constructor creating standard GBM
    */
-  GeometricBrownianMotion() = default;
+  GeometricBm() = default;
 
   /**
    * @brief Constructs GBM with specified parameters
@@ -48,7 +48,7 @@ public:
    * @param sigma Volatility parameter σ (must be positive)
    * @throws std::invalid_argument if start_position or sigma is not positive
    */
-  GeometricBrownianMotion(double start_position, double mu, double sigma)
+  GeometricBm(double start_position, double mu, double sigma)
       : m_start_position(start_position), m_mu(mu), m_sigma(sigma) {
     if (m_start_position <= 0) {
       throw std::invalid_argument("Initial value must be positive");
@@ -88,7 +88,7 @@ public:
    * S(t + dt) = S(t) * exp((μ - σ²/2) * dt + σ * √dt * Z)
    * where Z ~ N(0, 1)
    */
-  Result<vec_pair> simulate(double duration, double time_step = 0.01) override {
+  Result<vec_pair> simulate(double duration, double time_step) override {
     if (duration <= 0) {
       return Err(Error::InvalidArgument("Duration must be positive"));
     }
@@ -123,24 +123,5 @@ public:
     }
 
     return Ok(std::make_pair(std::move(times), std::move(positions)));
-  }
-
-  /**
-   * @brief Computes the theoretical mean at time t
-   * @param t Time point
-   * @return The theoretical mean E[S(t)]
-   */
-  [[nodiscard]] auto theoretical_mean(double t) const -> double {
-    return m_start_position * std::exp(m_mu * t);
-  }
-
-  /**
-   * @brief Computes the theoretical variance at time t
-   * @param t Time point
-   * @return The theoretical variance Var[S(t)]
-   */
-  [[nodiscard]] auto theoretical_variance(double t) const -> double {
-    double mean_val = theoretical_mean(t);
-    return mean_val * mean_val * (std::exp(m_sigma * m_sigma * t) - 1.0);
   }
 };

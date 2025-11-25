@@ -25,7 +25,7 @@ using std::vector;
  * - S(t) has independent, stationary increments
  * - S(t + s) - S(t) ~ Stable(α, 1, s^(1/α), 0) for α ∈ (0, 1)
  */
-export class Subordinator : public ContinuousProcess {
+export class Subordinator final : public ContinuousProcess {
   double m_alpha = 0.5; ///< Stability index α ∈ (0, 1)
 
 public:
@@ -60,7 +60,7 @@ public:
    * Uses the fact that increments follow a maximally skewed stable
    * distribution: S(t + dt) - S(t) ~ Stable(α, 1, dt^(1/α), 0)
    */
-  Result<vec_pair> simulate(double duration, double time_step = 0.01) override {
+  Result<vec_pair> simulate(double duration, double time_step) override {
     if (duration <= 0) {
       return Err(Error::InvalidArgument("Duration must be positive"));
     }
@@ -94,16 +94,6 @@ public:
 
     return Ok(std::make_pair(std::move(times), std::move(positions)));
   }
-
-  /**
-   * @brief Computes the theoretical mean at time t
-   * @param t Time point
-   * @return The theoretical mean E[S(t)]
-   */
-  [[nodiscard]] auto theoretical_mean(double t) const -> double {
-    // For maximally skewed stable subordinator, the mean grows as t
-    return t;
-  }
 };
 
 /**
@@ -116,7 +106,7 @@ public:
  * This process is used to model random time changes and is the inverse
  * of the subordinator process.
  */
-export class InverseSubordinator : public ContinuousProcess {
+export class InverseSubordinator final : public ContinuousProcess {
   double m_alpha = 0.5; ///< Stability index α ∈ (0, 1)
 
 public:
@@ -151,7 +141,7 @@ public:
    * Uses the relationship between subordinator and its inverse through
    * first passage times.
    */
-  Result<vec_pair> simulate(double duration, double time_step = 0.01) override {
+  Result<vec_pair> simulate(double duration, double time_step) override {
     if (duration <= 0) {
       return Err(Error::InvalidArgument("Duration must be positive"));
     }

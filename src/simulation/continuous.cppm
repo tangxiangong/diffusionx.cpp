@@ -20,3 +20,4 @@ export import diffusionx.simulation.continuous.brownian_excursion;
 export import diffusionx.simulation.continuous.brownian_meander;
 export import diffusionx.simulation.continuous.brownian_bridge;
 export import diffusionx.simulation.continuous.bng;
+export import diffusionx.simulation.continuous.gbm;

@@ -17,18 +17,20 @@ using std::vector;
  * @tparam T The floating-point type for the generated values
  * @param n The number of values to generate
  * @param mean The mean (μ) of the normal distribution
- * @param stddev The standard deviation (σ) of the normal distribution (must be positive)
- * @return Result containing a vector of n normally distributed values, or an Error
- * 
+ * @param stddev The standard deviation (σ) of the normal distribution (must be
+ * positive)
+ * @return Result containing a vector of n normally distributed values, or an
+ * Error
+ *
  * This function generates n random values from a normal (Gaussian) distribution
  * with the specified mean and standard deviation. The normal distribution has
  * probability density function f(x) = (1/(σ√(2π))) * e^(-(x-μ)²/(2σ²)).
- * 
+ *
  * @note Uses parallel generation for improved performance
  * @note Each thread uses its own thread-local generator for thread safety
  */
-export template<Float T = double>
-auto randn(size_t n, T mean = 0, T stddev = 1) -> Result<vector<T> > {
+export template <Float T = double>
+auto randn(size_t n, T mean = 0, T stddev = 1) -> Result<vector<T>> {
     if (stddev <= 0) {
         return Err(Error::InvalidArgument(format(
             "The standard deviation `stddev` must be positive, but got {}",
@@ -46,16 +48,18 @@ auto randn(size_t n, T mean = 0, T stddev = 1) -> Result<vector<T> > {
  * @brief Generates a single normally distributed random value
  * @tparam T The floating-point type for the generated value
  * @param mean The mean (μ) of the normal distribution
- * @param stddev The standard deviation (σ) of the normal distribution (must be positive)
+ * @param stddev The standard deviation (σ) of the normal distribution (must be
+ * positive)
  * @return Result containing a normally distributed value, or an Error
- * 
- * This function generates a single random value from a normal (Gaussian) distribution
- * with the specified mean and standard deviation. The normal distribution has
- * probability density function f(x) = (1/(σ√(2π))) * e^(-(x-μ)²/(2σ²)).
- * 
+ *
+ * This function generates a single random value from a normal (Gaussian)
+ * distribution with the specified mean and standard deviation. The normal
+ * distribution has probability density function f(x) = (1/(σ√(2π))) *
+ * e^(-(x-μ)²/(2σ²)).
+ *
  * @note Uses thread-local generator for thread safety
  */
-export template<Float T = double>
+export template <Float T = double>
 auto randn(T mean = 0, T stddev = 1) -> Result<T> {
     if (stddev <= 0) {
         return Err(Error::InvalidArgument(format(
@@ -70,27 +74,30 @@ auto randn(T mean = 0, T stddev = 1) -> Result<T> {
 /**
  * @brief A class representing a normal (Gaussian) distribution
  * @tparam T The floating-point type for the distribution
- * 
- * This class encapsulates a normal distribution with fixed mean and standard deviation
- * parameters. It provides methods to sample from the distribution, access parameters,
- * and perform arithmetic operations that preserve the normal distribution property.
- * The normal distribution is fundamental in statistics and probability theory.
+ *
+ * This class encapsulates a normal distribution with fixed mean and standard
+ * deviation parameters. It provides methods to sample from the distribution,
+ * access parameters, and perform arithmetic operations that preserve the normal
+ * distribution property. The normal distribution is fundamental in statistics
+ * and probability theory.
  */
-export template<Float T>
-class Normal {
-    T m_mean = 0.0; ///< The mean (μ) of the distribution
+export template <Float T> class Normal {
+    T m_mean = 0.0;   ///< The mean (μ) of the distribution
     T m_stddev = 1.0; ///< The standard deviation (σ) of the distribution
 
-public:
+  public:
     /**
-     * @brief Default constructor creating a standard normal distribution (μ=0, σ=1)
+     * @brief Default constructor creating a standard normal distribution (μ=0,
+     * σ=1)
      */
     Normal() = default;
 
     /**
-     * @brief Constructs a normal distribution with specified mean and standard deviation
+     * @brief Constructs a normal distribution with specified mean and standard
+     * deviation
      * @param mean The mean (μ) of the distribution
-     * @param stddev The standard deviation (σ) of the distribution (must be positive)
+     * @param stddev The standard deviation (σ) of the distribution (must be
+     * positive)
      * @throws std::invalid_argument if stddev is not positive
      */
     Normal(T mean, T stddev) : m_mean(mean), m_stddev(stddev) {
@@ -117,11 +124,11 @@ public:
      * @brief Generates multiple samples from the normal distribution
      * @param n The number of samples to generate
      * @return Result containing a vector of n samples, or an Error
-     * 
+     *
      * This method generates n independent samples from the normal distribution
      * using the stored mean and standard deviation parameters.
      */
-    [[nodiscard]] auto sample(size_t n) const -> Result<vector<T> > {
+    [[nodiscard]] auto sample(size_t n) const -> Result<vector<T>> {
         return randn(n, m_mean, m_stddev);
     }
 
@@ -138,7 +145,7 @@ public:
      * @brief Adds two independent normal distributions
      * @param rhs The other normal distribution to add
      * @return A new normal distribution representing the sum
-     * 
+     *
      * If X ~ N(μ₁, σ₁²) and Y ~ N(μ₂, σ₂²) are independent, then
      * X + Y ~ N(μ₁ + μ₂, σ₁² + σ₂²).
      */
@@ -152,7 +159,7 @@ public:
     /**
      * @brief Negates a normal distribution
      * @return A new normal distribution representing the negation
-     * 
+     *
      * If X ~ N(μ, σ²), then -X ~ N(-μ, σ²).
      */
     auto operator-() const -> Normal { return Normal{-m_mean, m_stddev}; }
@@ -161,7 +168,7 @@ public:
      * @brief Subtracts two independent normal distributions
      * @param rhs The normal distribution to subtract
      * @return A new normal distribution representing the difference
-     * 
+     *
      * If X ~ N(μ₁, σ₁²) and Y ~ N(μ₂, σ₂²) are independent, then
      * X - Y ~ N(μ₁ - μ₂, σ₁² + σ₂²).
      */
@@ -172,9 +179,9 @@ public:
      * @param a The scalar multiplier
      * @param rhs The normal distribution to scale
      * @return A new normal distribution representing the scaled distribution
-     * 
+     *
      * If X ~ N(μ, σ²), then aX ~ N(aμ, a²σ²).
-     * 
+     *
      * @note Returns an error if the scalar is zero
      */
     friend auto operator*(T a, const Normal &rhs) -> Normal {
@@ -200,7 +207,7 @@ public:
      * @param lhs The normal distribution
      * @param drift The constant to add
      * @return A new normal distribution with shifted mean
-     * 
+     *
      * If X ~ N(μ, σ²), then X + a ~ N(μ + drift, σ²).
      */
     friend auto operator+(const Normal &lhs, T drift) -> Normal {
@@ -214,7 +221,9 @@ public:
      * @param rhs The normal distribution
      * @return A new normal distribution with shifted mean
      */
-    friend auto operator+(T lhs, const Normal &rhs) -> Normal { return rhs + lhs; }
+    friend auto operator+(T lhs, const Normal &rhs) -> Normal {
+        return rhs + lhs;
+    }
 
     /**
      * @brief Subtracts a constant from a normal distribution

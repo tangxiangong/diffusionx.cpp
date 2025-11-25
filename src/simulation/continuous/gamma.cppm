@@ -31,7 +31,7 @@ using std::vector;
  * - Var[X(t)] = αt/β²
  * - X(t) is non-decreasing and non-negative
  */
-export class GammaProcess : public ContinuousProcess {
+export class GammaProcess final : public ContinuousProcess {
   double m_shape = 1.0; ///< Shape parameter α > 0
   double m_rate = 1.0;  ///< Rate parameter β > 0
 
@@ -77,54 +77,36 @@ public:
    * Uses independent Gamma increments:
    * X(t + dt) = X(t) + Gamma(α * dt, β)
    */
-  Result<vec_pair> simulate(double duration, double time_step = 0.01) override {
-    if (duration <= 0) {
-      return Err(Error::InvalidArgument("Duration must be positive"));
-    }
-    if (time_step <= 0) {
-      return Err(Error::InvalidArgument("Time step must be positive"));
-    }
+  Result<vec_pair> simulate(double duration, double time_step) override {
+      if (duration <= 0) {
+          return Err(Error::InvalidArgument("Duration must be positive"));
+      }
+      if (time_step <= 0) {
+          return Err(Error::InvalidArgument("Time step must be positive"));
+      }
 
-    size_t num_steps = static_cast<size_t>(std::ceil(duration / time_step));
-    vector<double> times(num_steps + 1);
-    vector<double> positions(num_steps + 1);
+      auto num_steps = static_cast<size_t>(std::ceil(duration / time_step));
+      vector<double> times(num_steps + 1);
+      vector<double> positions(num_steps + 1);
 
-    // Initialize
-    times[0] = 0.0;
-    positions[0] = 0.0;
+      // Initialize
+      times[0] = 0.0;
+      positions[0] = 0.0;
 
-    // Generate Gamma increments
-    double scale = 1.0 / m_rate;
-    auto increments_result = rand_gamma(num_steps, m_shape * time_step, scale);
-    if (!increments_result.has_value()) {
-      return Err(increments_result.error());
-    }
-    auto increments = increments_result.value();
+      // Generate Gamma increments
+      double scale = 1.0 / m_rate;
+      auto increments_result = rand_gamma(num_steps, m_shape * time_step, scale);
+      if (!increments_result.has_value()) {
+          return Err(increments_result.error());
+      }
+      auto const& increments = increments_result.value();
 
-    // Simulate trajectory (cumulative sum)
-    for (size_t i = 1; i <= num_steps; ++i) {
-      times[i] = i * time_step;
-      positions[i] = positions[i - 1] + increments[i - 1];
-    }
+      // Simulate trajectory (cumulative sum)
+      for (size_t i = 1; i <= num_steps; ++i) {
+          times[i] = static_cast<double>(i) * time_step;
+          positions[i] = positions[i - 1] + increments[i - 1];
+      }
 
-    return Ok(std::make_pair(std::move(times), std::move(positions)));
-  }
-
-  /**
-   * @brief Computes the theoretical mean at time t
-   * @param t Time point
-   * @return The theoretical mean E[X(t)]
-   */
-  [[nodiscard]] auto theoretical_mean(double t) const -> double {
-    return m_shape * t / m_rate;
-  }
-
-  /**
-   * @brief Computes the theoretical variance at time t
-   * @param t Time point
-   * @return The theoretical variance Var[X(t)]
-   */
-  [[nodiscard]] auto theoretical_variance(double t) const -> double {
-    return m_shape * t / (m_rate * m_rate);
+      return Ok(std::make_pair(std::move(times), std::move(positions)));
   }
 };
