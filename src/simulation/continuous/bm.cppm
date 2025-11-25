@@ -12,6 +12,46 @@ import diffusionx.simulation.basic.utils;
 
 using std::vector;
 
+export Result<vec_pair> simulate_bm(double start_position, double diffusion_coefficient, double duration, double time_step) override {
+    if (auto result = check_duration_time_step(duration, time_step); !result) {
+        return Err(result.error());
+    }
+
+    auto num_steps = static_cast<size_t>(std::ceil(duration / time_step));
+    vector<double> times(num_steps + 1);
+    vector<double> positions(num_steps + 1);
+
+    double current_t = 0.0;
+    double current_x = start_position;
+
+    // Initialize
+    times[0] = 0.0;
+    positions[0] = start_position;
+
+    // Generate increments
+    auto increments =
+        randn(num_steps - 1, 0.0,
+              std::sqrt(2.0 * diffusion_coefficient * time_step)).value();
+
+
+    for (size_t i = 1; i < num_steps; ++i) {
+        current_t += time_step;
+        current_x += increments[i - 1];
+        times[i] = current_t;
+        positions[i] = current_x;
+    }
+
+    double last_step = duration - current_t;
+    double increment =
+        randn(0.0, std::sqrt(2.0 * diffusion_coefficient * last_step))
+            .value();
+    current_x += increment;
+    times.back() = duration;
+    positions.back() = current_x;
+
+    return Ok(std::make_pair(std::move(times), std::move(positions)));
+}
+
 /**
  * @brief Brownian motion (Wiener process) implementation
  *
@@ -83,73 +123,23 @@ export class Bm final : public ContinuousProcess {
      * where Z ~ N(0, 1)
      */
     Result<vec_pair> simulate(double duration, double time_step) override {
-        if (duration <= 0) {
-            return Err(Error::InvalidArgument("Duration must be positive"));
-        }
-        if (time_step <= 0) {
-            return Err(Error::InvalidArgument("Time step must be positive"));
-        }
-
-        auto num_steps = static_cast<size_t>(std::ceil(duration / time_step));
-        vector<double> times(num_steps + 1);
-        vector<double> positions(num_steps + 1);
-
-        double current_t = 0.0;
-        double current_x = m_start_position;
-
-        // Initialize
-        times[0] = 0.0;
-        positions[0] = m_start_position;
-
-        // Generate increments
-        auto increments_result =
-            randn(num_steps - 1, 0.0,
-                  std::sqrt(2.0 * m_diffusion_coefficient * time_step));
-        if (!increments_result.has_value()) {
-            return Err(increments_result.error());
-        }
-        auto &increments = increments_result.value();
-
-        // Simulate trajectory
-        for (size_t i = 1; i < num_steps; ++i) {
-            current_t += time_step;
-            current_x += increments[i - 1];
-            times[i] = current_t;
-            positions[i] = current_x;
-        }
-
-        double last_step = duration - current_t;
-        double increment =
-            randn(0.0, std::sqrt(2.0 * m_diffusion_coefficient * last_step))
-                .value();
-        current_x += increment;
-        times.back() = duration;
-        positions.back() = current_x;
-
-        return Ok(std::make_pair(std::move(times), std::move(positions)));
+        return simulate_bm(m_start_position, m_diffusion_coefficient, duration, time_step);
     }
 
     Result<double> displacement(double duration, double time_step) override {
-        if (duration <= 0) {
-            return Err(Error::InvalidArgument("Duration must be positive"));
-        }
-        if (time_step <= 0) {
-            return Err(Error::InvalidArgument("Time step must be positive"));
+        if (auto result = check_duration_time_step(duration, time_step); !result) {
+            return Err(result.error());
         }
 
         auto num_steps = static_cast<size_t>(std::ceil(duration / time_step));
         double current_x = m_start_position;
 
         // Generate increments
-        auto increments_result =
+        auto increments =
             randn(num_steps - 1, 0.0,
-                  std::sqrt(2.0 * m_diffusion_coefficient * time_step));
-        if (!increments_result.has_value()) {
-            return Err(increments_result.error());
-        }
-
+                  std::sqrt(2.0 * m_diffusion_coefficient * time_step)).value();
         // Simulate trajectory
-        for (auto &increments = increments_result.value(); const auto increment : increments) {
+        for (const auto increment : increments) {
             current_x += increment;
         }
 
@@ -162,72 +152,4 @@ export class Bm final : public ContinuousProcess {
 
         return Ok(current_x - m_start_position);
     }
-
-    // /**
-    //  * @brief Computes the first passage time through a domain
-    //  * @param domain The domain boundaries as a pair (lower, upper)
-    //  * @param max_duration Maximum simulation time
-    //  * @param time_step The time step for discretization
-    //  * @return Result containing an optional FPT (None if no passage occurs),
-    //  or
-    //  * an Error
-    //  */
-    // Result<Option<double>> fpt(double_pair domain, double max_duration =
-    // 1000,
-    //                            double time_step = 0.01) override {
-    //     auto [lower, upper] = domain;
-    //     if (lower >= upper) {
-    //         return Err(Error::InvalidArgument(
-    //             "Invalid domain: lower bound must be less than upper
-    //             bound"));
-    //     }
-    //
-    //     auto traj_result = simulate(max_duration, time_step);
-    //     if (!traj_result.has_value()) {
-    //         return Err(traj_result.error());
-    //     }
-    //
-    //     auto [times, positions] = traj_result.value();
-    //
-    //     for (size_t i = 0; i < positions.size(); ++i) {
-    //         if (positions[i] <= lower || positions[i] >= upper) {
-    //             return Ok(Some(times[i]));
-    //         }
-    //     }
-    //
-    //     return Ok(std::nullopt);
-    // }
-    //
-    // /**
-    //  * @brief Computes the occupation time within a domain
-    //  * @param domain The domain boundaries as a pair (lower, upper)
-    //  * @param duration The total simulation time
-    //  * @param time_step The time step for discretization
-    //  * @return Result containing the occupation time, or an Error
-    //  */
-    // Result<double> occupation_time(double_pair domain, double duration,
-    //                                double time_step = 0.01) override {
-    //     auto [lower, upper] = domain;
-    //     if (lower >= upper) {
-    //         return Err(Error::InvalidArgument(
-    //             "Invalid domain: lower bound must be less than upper
-    //             bound"));
-    //     }
-    //
-    //     auto traj_result = simulate(duration, time_step);
-    //     if (!traj_result.has_value()) {
-    //         return Err(traj_result.error());
-    //     }
-    //
-    //     auto [times, positions] = traj_result.value();
-    //
-    //     double occupation = 0.0;
-    //     for (size_t i = 1; i < positions.size(); ++i) {
-    //         if (positions[i] > lower && positions[i] < upper) {
-    //             occupation += time_step;
-    //         }
-    //     }
-    //
-    //     return Ok(occupation);
-    // }
 };
