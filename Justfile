@@ -10,13 +10,13 @@ clean:
     @if [ -d "{{bin_dir}}" ]; then rm -rf {{bin_dir}}; fi
 
 configure: install
-    @cmake --preset=vcpkg
+    @cmake --preset=default
 
 debug: clean configure
     @cmake --build {{build_dir}}
 
 release: clean install
-    @cmake --preset=vcpkg -DCMAKE_BUILD_TYPE=Release
+    @cmake --preset=default -DCMAKE_BUILD_TYPE=Release
     @cmake --build {{build_dir}}
 
 install:
