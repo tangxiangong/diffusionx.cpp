@@ -12,7 +12,7 @@ import diffusionx.simulation.basic.utils;
 
 using std::vector;
 
-export Result<vec_pair> simulate_bm(double start_position, double diffusion_coefficient, double duration, double time_step) override {
+export Result<vec_pair> simulate_bm(double start_position, double diffusion_coefficient, double duration, double time_step) {
     if (auto result = check_duration_time_step(duration, time_step); !result) {
         return Err(result.error());
     }
