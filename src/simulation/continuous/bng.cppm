@@ -12,46 +12,49 @@ import diffusionx.simulation.basic.utils;
 
 using std::vector;
 
-/**
-   * @brief Simulates the OU process Y(t) with θ = 1, σ = 1
-   * @param start_position Initial position Y₀
-   * @param duration The total simulation time
-   * @param time_step The time step for discretization
-   * @return Result containing OU trajectory, or an Error
-   */
-Result<vector<double>> simulate_ou_process(double start_position,
-    double duration,
-                                           double time_step) {
+export Result<vec_pair> simulate_bng(double start_position,
+                                     double ou_start_position, double duration,
+                                     double time_step) {
+    if (auto result = check_duration_time_step(duration, time_step); !result) {
+        return Err(result.error());
+    }
+
     auto num_steps = static_cast<size_t>(std::ceil(duration / time_step));
-    vector<double> y_trajectory(num_steps + 1);
+    vector<double> t(num_steps + 1);
+    vector<double> x(num_steps + 1);
 
-    // Initialize OU process
-    y_trajectory[0] = start_position;
+    t[0] = 0.0;
+    x[0] = start_position;
 
-    // OU parameters: θ = 1, σ = 1
-    double theta = 1.0;
-    double sigma = 1.0;
+    double current_t = 0.0;
+    double current_x = start_position;
+    double current_y = ou_start_position;
 
-    // Precompute constants for exact discretization
-    double exp_theta_dt = std::exp(-theta * time_step);
-    double var_coeff =
-        sigma *
-        std::sqrt((1.0 - std::exp(-2.0 * theta * time_step)) / (2.0 * theta));
+    double scale_ou = std::sqrt(time_step);
+    double scale_bng = std::sqrt(2.0 * time_step);
 
-    // Generate random increments for OU process
-    auto ou_noise_result = randn(num_steps, 0.0, 1.0);
-    if (!ou_noise_result.has_value()) {
-        return Err(ou_noise_result.error());
-    }
-    auto ou_noise = ou_noise_result.value();
+    auto noises_ou = randn(num_steps - 1).value();
+    auto noises_bgn = randn(num_steps - 1).value();
 
-    // Simulate OU trajectory using exact discretization
-    for (size_t i = 1; i <= num_steps; ++i) {
-        y_trajectory[i] =
-            y_trajectory[i - 1] * exp_theta_dt + var_coeff * ou_noise[i - 1];
+    for (size_t i = 0; i < num_steps - 1; ++i) {
+        current_t += time_step;
+        current_y += -current_y * time_step + noises_ou[i] * scale_ou;
+        current_x += std::abs(current_y) * noises_bgn[i] * scale_bng;
+        t[i + 1] = current_t;
+        x[i + 1] = current_x;
     }
 
-    return Ok(std::move(y_trajectory));
+    double last_step = duration - current_t;
+    scale_ou = std::sqrt(last_step);
+    scale_bng = std::sqrt(2.0 * last_step);
+
+    current_y += -current_y * last_step + randn() * scale_ou;
+    current_x += std::abs(current_y) * randn() * scale_bng;
+
+    t[num_steps] = duration;
+    x[num_steps] = current_x;
+
+    return Ok(std::make_pair(std::move(t), std::move(x)));
 }
 
 /**
@@ -75,94 +78,86 @@ Result<vector<double>> simulate_ou_process(double start_position,
  * - Exponential tails in displacement probability density
  */
 export class BnG final : public ContinuousProcess {
-  double m_start_position = 0.0;    ///< Initial position r₀
-  double m_ou_start_position = 1.0; ///< Initial OU process value Y₀
+    double m_start_position = 0.0;    ///< Initial position r₀
+    double m_ou_start_position = 0.0; ///< Initial OU process value Y₀
 
-public:
-  /**
-   * @brief Default constructor creating standard BnG process
-   */
-  BnG() = default;
+  public:
+    /**
+     * @brief Default constructor creating standard BnG process
+     */
+    BnG() = default;
 
-  /**
-   * @brief Constructs BnG process with specified parameters
-   * @param start_position Initial position r₀
-   * @param ou_start_position Initial OU process value Y₀
-   */
-  BnG(double start_position, double ou_start_position)
-      : m_start_position(start_position),
-        m_ou_start_position(ou_start_position) {}
+    /**
+     * @brief Constructs BnG process with specified parameters
+     * @param start_position Initial position r₀
+     * @param ou_start_position Initial OU process value Y₀
+     */
+    BnG(double start_position, double ou_start_position)
+        : m_start_position(start_position),
+          m_ou_start_position(ou_start_position) {}
 
-  /**
-   * @brief Gets the initial position
-   * @return The initial position r₀
-   */
-  [[nodiscard]] auto get_start_position() const -> double {
-    return m_start_position;
-  }
-
-  /**
-   * @brief Gets the initial OU process value
-   * @return The initial OU process value Y₀
-   */
-  [[nodiscard]] auto get_ou_start_position() const -> double {
-    return m_ou_start_position;
-  }
-
-  /**
-   * @brief Simulates a trajectory of the BnG process
-   * @param duration The total simulation time
-   * @param time_step The time step for discretization
-   * @return Result containing time and position vectors, or an Error
-   *
-   * Algorithm:
-   * 1. Simulate OU process Y(t) with θ = 1, σ = 1
-   * 2. Use |Y(t)| as time-varying diffusion coefficient
-   * 3. Generate position increments with √(2|Y(t)|dt) * Z
-   */
-  Result<vec_pair> simulate(double duration, double time_step) override {
-    if (duration <= 0) {
-      return Err(Error::InvalidArgument("Duration must be positive"));
-    }
-    if (time_step <= 0) {
-      return Err(Error::InvalidArgument("Time step must be positive"));
+    /**
+     * @brief Gets the initial position
+     * @return The initial position r₀
+     */
+    [[nodiscard]] auto get_start_position() const -> double {
+        return m_start_position;
     }
 
-    auto num_steps = static_cast<size_t>(std::ceil(duration / time_step));
-    vector<double> times(num_steps + 1);
-    vector<double> positions(num_steps + 1);
-
-    // Initialize
-    times[0] = 0.0;
-    positions[0] = m_start_position;
-
-    // Simulate OU process Y(t) with θ = 1, σ = 1
-    auto ou_result = simulate_ou_process(m_ou_start_position, duration, time_step);
-    if (!ou_result.has_value()) {
-      return Err(ou_result.error());
-    }
-    const auto& ou_trajectory = ou_result.value();
-
-    // Generate Brownian increments
-    auto noise_result = randn(num_steps, 0.0, 1.0);
-    if (!noise_result.has_value()) {
-      return Err(noise_result.error());
-    }
-    auto noise = noise_result.value();
-
-    // Simulate BnG trajectory
-    for (size_t i = 1; i <= num_steps; ++i) {
-      times[i] = static_cast<double>(i) * time_step;
-
-      // Time-varying diffusion coefficient D(t) = |Y(t)|
-      double diffusion_coeff = std::abs(ou_trajectory[i]);
-
-      // Position increment: √(2D(t)dt) * Z
-      double increment =
-          std::sqrt(2.0 * diffusion_coeff * time_step) * noise[i - 1];
-      positions[i] = positions[i - 1] + increment;
+    /**
+     * @brief Gets the initial OU process value
+     * @return The initial OU process value Y₀
+     */
+    [[nodiscard]] auto get_ou_start_position() const -> double {
+        return m_ou_start_position;
     }
 
-    return Ok(std::make_pair(std::move(times), std::move(positions)));
-  }
+    /**
+     * @brief Simulates a trajectory of the BnG process
+     * @param duration The total simulation time
+     * @param time_step The time step for discretization
+     * @return Result containing time and position vectors, or an Error
+     *
+     * Algorithm:
+     * 1. Simulate OU process Y(t) with θ = 1, σ = 1
+     * 2. Use |Y(t)| as time-varying diffusion coefficient
+     * 3. Generate position increments with √(2|Y(t)|dt) * Z
+     */
+    Result<vec_pair> simulate(double duration, double time_step) override {
+        return simulate_bng(m_start_position, m_ou_start_position, duration,
+                            time_step);
+    }
+
+    double start() override { return m_start_position; }
+
+    Result<double> displacement(double duration, double time_step) override {
+        if (auto result = check_duration_time_step(duration, time_step); !result) {
+            return Err(result.error());
+        }
+
+        auto num_steps = static_cast<size_t>(std::ceil(duration / time_step));
+
+        double current_x = m_start_position;
+        double current_y = m_ou_start_position;
+
+        double scale_ou = std::sqrt(time_step);
+        double scale_bng = std::sqrt(2.0 * time_step);
+
+        auto noises_ou = randn(num_steps - 1).value();
+        auto noises_bgn = randn(num_steps - 1).value();
+
+        for (size_t i = 0; i < num_steps - 1; ++i) {
+            current_y += -current_y * time_step + noises_ou[i] * scale_ou;
+            current_x += std::abs(current_y) * noises_bgn[i] * scale_bng;
+        }
+
+        double last_step = duration - static_cast<double>(num_steps - 1) * time_step;
+        scale_ou = std::sqrt(last_step);
+        scale_bng = std::sqrt(2.0 * last_step);
+
+        current_y += -current_y * last_step + randn() * scale_ou;
+        current_x += std::abs(current_y) * randn() * scale_bng;
+
+        return Ok(current_x - m_start_position);
+    }
 };
