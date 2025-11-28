@@ -21,3 +21,6 @@ release: clean install
 
 install:
     @vcpkg install
+
+fmt:
+    @find ./src/ \( -name '*.cppm' \) -exec clang-format -i {} \;
