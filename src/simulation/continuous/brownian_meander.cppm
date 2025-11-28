@@ -10,20 +10,74 @@ import diffusionx.error;
 import diffusionx.random.normal;
 import diffusionx.simulation.basic.abstract;
 import diffusionx.simulation.basic.utils;
-import diffusionx.simulation.continuous.brownian_bridge;
+import diffusionx.simulation.continuous.bm;
 
 using std::vector;
 
+export Result<vec_pair> simulate_brownian_meander(double duration,
+                                                  double time_step) {
+    if (auto result = check_duration_time_step(duration, time_step); !result) {
+        return Err(result.error());
+    }
+
+    if (duration > 1.0) {
+        return Err(Error::InvalidArgument(
+            "Duration must be less than or equal to 1 for Brownian meander"));
+    }
+
+    Bm bm{};
+    auto bm_result = bm.simulate(duration, time_step);
+    if (!bm_result) {
+        return Err(bm_result.error());
+    }
+    auto [bm_t, bm_traj] = bm_result.value();
+
+    vector<size_t> hint_indexes;
+    for (size_t i = 0; i < bm_traj.size(); ++i) {
+        if (std::abs(bm_traj[i]) < 1e-10) {
+            hint_indexes.push_back(i);
+        }
+    }
+    size_t last_hint_index = hint_indexes.empty() ? 0 : hint_indexes.back();
+    double tau = (last_hint_index == bm_traj.size() - 1)
+                     ? 1.0 - time_step
+                     : bm_t[last_hint_index];
+    double coe = 1.0 / std::sqrt(1.0 - tau);
+
+    vector<double> x(bm_t.size());
+    double time;
+    std::ranges::borrowed_iterator_t<vector<double> &> it;
+    size_t right_index;
+    size_t left_index;
+    double left_time;
+    double right_time;
+    double left_traj;
+    double right_traj;
+    double k;
+    double value;
+    for (size_t i = 0; i < bm_t.size(); ++i) {
+        time = bm_t[i] * (1.0 - tau) + tau;
+        it = std::ranges::find_if(bm_t, [time](double v) { return v > time; });
+        right_index = it == bm_t.end()
+                          ? bm_t.size() - 1
+                          : std::ranges::distance(bm_t.begin(), it);
+        left_index = right_index - 1;
+        left_time = bm_t[left_index];
+        right_time = bm_t[right_index];
+        left_traj = bm_traj[left_index];
+        right_traj = bm_traj[right_index];
+        k = (left_traj - right_traj) / (left_time - right_time);
+        value = k * (time - left_time) + left_traj;
+        x[i] = std::abs(value) * coe;
+    }
+
+    return Ok(std::make_pair(std::move(bm_t), std::move(x)));
+}
+
 /**
- * @brief Brownian meander implementation
- *
- * A Brownian meander is a Brownian motion conditioned to stay positive
- * over a finite time interval [0, T]. Unlike the excursion, it doesn't
- * necessarily end at 0.
+ * @brief Brownian meander
  */
 export class BrownianMeander final : public ContinuousProcess {
-    double m_total_time = 1.0; ///< Total time T
-
   public:
     /**
      * @brief Default constructor creating a standard Brownian meander
@@ -31,23 +85,6 @@ export class BrownianMeander final : public ContinuousProcess {
      * Creates a Brownian meander over time interval [0, 1].
      */
     BrownianMeander() = default;
-
-    /**
-     * @brief Constructs a Brownian meander with specified total time
-     * @param total_time Total time T (must be positive)
-     * @throws std::invalid_argument if total_time is not positive
-     */
-    explicit BrownianMeander(double total_time) : m_total_time(total_time) {
-        if (m_total_time <= 0) {
-            throw std::invalid_argument("Total time must be positive");
-        }
-    }
-
-    /**
-     * @brief Gets the total time
-     * @return The total time T
-     */
-    [[nodiscard]] auto get_total_time() const -> double { return m_total_time; }
 
     /**
      * @brief Simulates a trajectory of the Brownian meander
@@ -58,57 +95,70 @@ export class BrownianMeander final : public ContinuousProcess {
      * Uses the reflection principle and rejection sampling.
      */
     Result<vec_pair> simulate(double duration, double time_step) override {
-        if (duration <= 0) {
-            return Err(Error::InvalidArgument("Duration must be positive"));
-        }
-        if (time_step <= 0) {
-            return Err(Error::InvalidArgument("Time step must be positive"));
-        }
-        if (std::abs(duration - m_total_time) > 1e-10) {
-            return Err(Error::InvalidArgument(
-                "Duration must equal total_time for Brownian meander"));
-        }
+        return simulate_brownian_meander(duration, time_step);
+    }
 
-        auto num_steps = static_cast<size_t>(std::ceil(duration / time_step));
-        vector<double> times(num_steps + 1);
-        vector<double> positions(num_steps + 1);
+    double start() override { return 0.0; }
 
-        // Initialize time grid
-        for (size_t i = 0; i <= num_steps; ++i) {
-            times[i] = static_cast<double>(i) * time_step;
+    Result<double> displacement(double duration, double time_step) override {
+        if (auto result = check_duration_time_step(duration, time_step);
+            !result) {
+            return Err(result.error());
         }
 
-        // Use rejection sampling on Brownian motion
-        constexpr int max_attempts = 10000;
+        if (duration > 1.0) {
+            return Err(
+                Error::InvalidArgument("Duration must be less than or equal to "
+                                       "1 for Brownian meander"));
+        }
 
-        for (int attempt = 0; attempt < max_attempts; ++attempt) {
-            // Generate Brownian motion increments
-            auto increments_result =
-                randn(num_steps, 0.0, std::sqrt(time_step));
-            if (!increments_result.has_value()) {
-                return Err(increments_result.error());
-            }
-            auto increments = increments_result.value();
+        Bm bm{};
+        auto bm_result = bm.simulate(duration, time_step);
+        if (!bm_result) {
+            return Err(bm_result.error());
+        }
+        auto [bm_t, bm_traj] = bm_result.value();
 
-            // Build trajectory
-            positions[0] = 0.0;
-            bool all_positive = true;
-
-            for (size_t i = 1; i <= num_steps; ++i) {
-                positions[i] = positions[i - 1] + increments[i - 1];
-                if (positions[i] <= 0) {
-                    all_positive = false;
-                    break;
-                }
-            }
-
-            if (all_positive) {
-                return Ok(
-                    std::make_pair(std::move(times), std::move(positions)));
+        vector<size_t> hint_indexes;
+        for (size_t i = 0; i < bm_traj.size(); ++i) {
+            if (std::abs(bm_traj[i]) < 1e-10) {
+                hint_indexes.push_back(i);
             }
         }
+        size_t last_hint_index = hint_indexes.empty() ? 0 : hint_indexes.back();
+        double tau = (last_hint_index == bm_traj.size() - 1)
+                         ? 1.0 - time_step
+                         : bm_t[last_hint_index];
+        double coe = 1.0 / std::sqrt(1.0 - tau);
 
-        return Err(Error::SimulationFailed(
-            "Failed to generate Brownian meander after maximum attempts"));
+        double time;
+        std::ranges::borrowed_iterator_t<vector<double> &> it;
+        size_t right_index;
+        size_t left_index;
+        double left_time;
+        double right_time;
+        double left_traj;
+        double right_traj;
+        double k;
+        double value;
+        double delta_x = 0.0;
+        for (size_t i = 0; i < bm_t.size(); ++i) {
+            time = bm_t[i] * (1.0 - tau) + tau;
+            it = std::ranges::find_if(bm_t,
+                                      [time](double v) { return v > time; });
+            right_index = it == bm_t.end()
+                              ? bm_t.size() - 1
+                              : std::ranges::distance(bm_t.begin(), it);
+            left_index = right_index - 1;
+            left_time = bm_t[left_index];
+            right_time = bm_t[right_index];
+            left_traj = bm_traj[left_index];
+            right_traj = bm_traj[right_index];
+            k = (left_traj - right_traj) / (left_time - right_time);
+            value = k * (time - left_time) + left_traj;
+            delta_x += std::abs(value) * coe;
+        }
+
+        return Ok(delta_x);
     }
 };
