@@ -33,22 +33,24 @@ export struct ContinuousProcess {
      * @brief Simulates a trajectory of the stochastic process
      * @param duration The total simulation time
      * @param time_step The time step for discretization (default: 0.01)
-     * @return Result containing a pair of time and position vectors, or an Error
+     * @return Result containing a pair of time and position vectors, or an
+     * Error
      *
-     * This pure virtual method must be implemented by derived classes to generate
-     * a single trajectory of the stochastic process.
+     * This pure virtual method must be implemented by derived classes to
+     * generate a single trajectory of the stochastic process.
      */
-    virtual Result<vec_pair> simulate(double duration,
-                                      double time_step) = 0;
-    Result<vec_pair> simulate(double duration) { return simulate(duration, 0.01); }
+    virtual Result<vec_pair> simulate(double duration, double time_step) = 0;
+    Result<vec_pair> simulate(double duration) {
+        return simulate(duration, 0.01);
+    }
 
     virtual Result<double> displacement(double duration, double time_step);
-    Result<double> displacement(double duration) { return displacement(duration, 0.01); }
+    Result<double> displacement(double duration) {
+        return displacement(duration, 0.01);
+    }
 
     // TODO: 应该是纯虚
-    virtual double start() {
-        return 0.0;
-    };
+    virtual double start() { return 0.0; };
     virtual Result<double> end(double duration, double time_step);
     Result<double> end(double duration) { return end(duration, 0.01); }
 
@@ -62,7 +64,9 @@ export struct ContinuousProcess {
     virtual Result<double> mean(double duration, size_t particles,
                                 double time_step);
     Result<double> mean(double duration) { return mean(duration, 10000, 0.01); }
-    Result<double> mean(double duration, size_t particles) { return mean(duration, particles, 0.01); }
+    Result<double> mean(double duration, size_t particles) {
+        return mean(duration, particles, 0.01);
+    }
 
     /**
      * @brief Computes the mean squared displacement (MSD) at a given time
@@ -74,7 +78,9 @@ export struct ContinuousProcess {
     virtual Result<double> msd(double duration, size_t particles,
                                double time_step);
     Result<double> msd(double duration) { return msd(duration, 10000, 0.01); }
-    Result<double> msd(double duration, size_t particles) { return msd(duration, particles, 0.01); }
+    Result<double> msd(double duration, size_t particles) {
+        return msd(duration, particles, 0.01);
+    }
 
     /**
      * @brief Computes the raw moment of the process at a given time
@@ -85,10 +91,13 @@ export struct ContinuousProcess {
      * @return Result containing the raw moment value, or an Error
      */
     virtual Result<double> raw_moment(double duration, int order,
-                                      size_t particles,
-                                      double time_step);
-    Result<double> raw_moment(double duration, int order) { return raw_moment(duration, order, 10000, 0.01); }
-    Result<double> raw_moment(double duration, int order, size_t particles) { return raw_moment(duration, order, particles, 0.01); }
+                                      size_t particles, double time_step);
+    Result<double> raw_moment(double duration, int order) {
+        return raw_moment(duration, order, 10000, 0.01);
+    }
+    Result<double> raw_moment(double duration, int order, size_t particles) {
+        return raw_moment(duration, order, particles, 0.01);
+    }
 
     /**
      * @brief Computes the central moment of the process at a given time
@@ -99,21 +108,27 @@ export struct ContinuousProcess {
      * @return Result containing the central moment value, or an Error
      */
     virtual Result<double> central_moment(double duration, int order,
-                                          size_t particles,
-                                          double time_step);
-    Result<double> central_moment(double duration, int order) { return central_moment(duration, order, 10000, 0.01); }
-    Result<double> central_moment(double duration, int order, size_t particles) { return central_moment(duration, order, particles, 0.01); }
+                                          size_t particles, double time_step);
+    Result<double> central_moment(double duration, int order) {
+        return central_moment(duration, order, 10000, 0.01);
+    }
+    Result<double> central_moment(double duration, int order,
+                                  size_t particles) {
+        return central_moment(duration, order, particles, 0.01);
+    }
 
     // /**
     //  * @brief Computes the first passage time (FPT) for a given domain
     //  * @param domain The domain boundaries as a pair (lower, upper)
     //  * @param max_duration Maximum simulation time (default: 1000)
     //  * @param time_step The time step for discretization (default: 0.01)
-    //  * @return Result containing an optional FPT (None if no passage occurs), or
+    //  * @return Result containing an optional FPT (None if no passage occurs),
+    //  or
     //  * an Error
     //  */
     // virtual Result<Option<double> >
-    // fpt(double_pair domain, double max_duration = 1000, double time_step = 0.01);
+    // fpt(double_pair domain, double max_duration = 1000, double time_step =
+    // 0.01);
     //
     // /**
     //  * @brief Computes the occupation time within a given domain
@@ -122,32 +137,36 @@ export struct ContinuousProcess {
     //  * @param time_step The time step for discretization (default: 0.01)
     //  * @return Result containing the occupation time, or an Error
     //  */
-    // virtual Result<double> occupation_time(double_pair domain, double duration,
+    // virtual Result<double> occupation_time(double_pair domain, double
+    // duration,
     //                                        double time_step = 0.01);
     //
     // /**
     //  * @brief Computes the time-averaged mean squared displacement (TAMSD)
     //  * @param duration The total simulation time
     //  * @param delta The lag time for averaging
-    //  * @param quad_order The order of quadrature for integration (default: 10)
+    //  * @param quad_order The order of quadrature for integration (default:
+    //  10)
     //  * @param time_step The time step for discretization (default: 0.01)
     //  * @return Result containing the TAMSD value, or an Error
     //  */
     // virtual Result<double> tamsd(double duration, double delta,
-    //                              size_t quad_order = 10, double time_step = 0.01);
+    //                              size_t quad_order = 10, double time_step =
+    //                              0.01);
     //
     // /**
     //  * @brief Computes the ensemble-averaged time-averaged MSD (EATAMSD)
     //  * @param duration The total simulation time
     //  * @param delta The lag time for averaging
     //  * @param particles The number of Monte Carlo samples (default: 10000)
-    //  * @param quad_order The order of quadrature for integration (default: 10)
+    //  * @param quad_order The order of quadrature for integration (default:
+    //  10)
     //  * @param time_step The time step for discretization (default: 0.01)
     //  * @return Result containing the EATAMSD value, or an Error
     //  */
     // virtual Result<double> eatamsd(double duration, double delta,
-    //                                size_t particles = 10000, int quad_order = 10,
-    //                                double time_step = 0.01);
+    //                                size_t particles = 10000, int quad_order =
+    //                                10, double time_step = 0.01);
 };
 
 /**
@@ -157,7 +176,7 @@ export struct ContinuousProcess {
  * This concept ensures that template parameters are derived from
  * ContinuousProcess.
  */
-export template<typename T>
+export template <typename T>
 concept CP = std::derived_from<T, ContinuousProcess>;
 
 /**
@@ -167,11 +186,10 @@ concept CP = std::derived_from<T, ContinuousProcess>;
  * This specialization provides concrete implementations for computing moments
  * of continuous stochastic processes.
  */
-template<CP T>
-struct Moment<T> {
+template <CP T> struct Moment<T> {
     double m_duration; ///< The time at which to compute the moment
-    int m_order; ///< The order of the moment
-    T &process; ///< Reference to the continuous process
+    int m_order;       ///< The order of the moment
+    T &process;        ///< Reference to the continuous process
 
     /**
      * @brief Computes the raw moment using parallel Monte Carlo simulation
@@ -242,8 +260,7 @@ Result<double> ContinuousProcess::displacement(double duration,
     return x.back() - start();
 }
 
-Result<double> ContinuousProcess::end(double duration,
-                                               double time_step) {
+Result<double> ContinuousProcess::end(double duration, double time_step) {
     auto delta_x = displacement(duration, time_step);
     if (!delta_x.has_value()) {
         return Err(delta_x.error());
@@ -291,7 +308,8 @@ auto ContinuousProcess::central_moment(double duration, int order,
 // }
 //
 // Result<double> ContinuousProcess::tamsd(double duration, double delta,
-//                                         size_t quad_order, double time_step) {
+//                                         size_t quad_order, double time_step)
+//                                         {
 //     return Err(Error::NotImplemented(
 //         "tamsd is not implemented for this process"));
 // }
@@ -310,7 +328,7 @@ auto ContinuousProcess::central_moment(double duration, int order,
  * This base class provides the interface for simulating point processes.
  */
 export class PointProcess {
-public:
+  public:
     virtual ~PointProcess() = default;
 
     /**
@@ -337,7 +355,9 @@ public:
     virtual Result<double> mean(double duration, size_t particles,
                                 double time_step);
     Result<double> mean(double duration) { return mean(duration, 10000, 0.01); }
-    Result<double> mean(double duration, size_t particles) { return mean(duration, particles, 0.01); }
+    Result<double> mean(double duration, size_t particles) {
+        return mean(duration, particles, 0.01);
+    }
 
     /**
      * @brief Computes the mean squared displacement (MSD) at a given time
@@ -349,7 +369,9 @@ public:
     virtual Result<double> msd(double duration, size_t particles,
                                double time_step);
     Result<double> msd(double duration) { return msd(duration, 10000, 0.01); }
-    Result<double> msd(double duration, size_t particles) { return msd(duration, particles, 0.01); }
+    Result<double> msd(double duration, size_t particles) {
+        return msd(duration, particles, 0.01);
+    }
 
     /**
      * @brief Computes the raw moment of the process at a given time
@@ -360,10 +382,13 @@ public:
      * @return Result containing the raw moment value, or an Error
      */
     virtual Result<double> raw_moment(double duration, int order,
-                                      size_t particles,
-                                      double time_step);
-    Result<double> raw_moment(double duration, int order) { return raw_moment(duration, order, 10000, 0.01); }
-    Result<double> raw_moment(double duration, int order, size_t particles) { return raw_moment(duration, order, particles, 0.01); }
+                                      size_t particles, double time_step);
+    Result<double> raw_moment(double duration, int order) {
+        return raw_moment(duration, order, 10000, 0.01);
+    }
+    Result<double> raw_moment(double duration, int order, size_t particles) {
+        return raw_moment(duration, order, particles, 0.01);
+    }
 
     /**
      * @brief Computes the central moment of the process at a given time
@@ -374,21 +399,27 @@ public:
      * @return Result containing the central moment value, or an Error
      */
     virtual Result<double> central_moment(double duration, int order,
-                                          size_t particles,
-                                          double time_step);
-    Result<double> central_moment(double duration, int order) { return central_moment(duration, order, 10000, 0.01); }
-    Result<double> central_moment(double duration, int order, size_t particles) { return central_moment(duration, order, particles, 0.01); }
+                                          size_t particles, double time_step);
+    Result<double> central_moment(double duration, int order) {
+        return central_moment(duration, order, 10000, 0.01);
+    }
+    Result<double> central_moment(double duration, int order,
+                                  size_t particles) {
+        return central_moment(duration, order, particles, 0.01);
+    }
 
     // /**
     //  * @brief Computes the first passage time (FPT) for a given domain
     //  * @param domain The domain boundaries as a pair (lower, upper)
     //  * @param max_duration Maximum simulation time (default: 1000)
     //  * @param time_step The time step for discretization (default: 0.01)
-    //  * @return Result containing an optional FPT (None if no passage occurs), or
+    //  * @return Result containing an optional FPT (None if no passage occurs),
+    //  or
     //  * an Error
     //  */
     // virtual Result<Option<double> >
-    // fpt(double_pair domain, double max_duration = 1000, double time_step = 0.01);
+    // fpt(double_pair domain, double max_duration = 1000, double time_step =
+    // 0.01);
     //
     // /**
     //  * @brief Computes the occupation time within a given domain
@@ -397,32 +428,36 @@ public:
     //  * @param time_step The time step for discretization (default: 0.01)
     //  * @return Result containing the occupation time, or an Error
     //  */
-    // virtual Result<double> occupation_time(double_pair domain, double duration,
+    // virtual Result<double> occupation_time(double_pair domain, double
+    // duration,
     //                                        double time_step = 0.01);
     //
     // /**
     //  * @brief Computes the time-averaged mean squared displacement (TAMSD)
     //  * @param duration The total simulation time
     //  * @param delta The lag time for averaging
-    //  * @param quad_order The order of quadrature for integration (default: 10)
+    //  * @param quad_order The order of quadrature for integration (default:
+    //  10)
     //  * @param time_step The time step for discretization (default: 0.01)
     //  * @return Result containing the TAMSD value, or an Error
     //  */
     // virtual Result<double> tamsd(double duration, double delta,
-    //                              size_t quad_order = 10, double time_step = 0.01);
+    //                              size_t quad_order = 10, double time_step =
+    //                              0.01);
     //
     // /**
     //  * @brief Computes the ensemble-averaged time-averaged MSD (EATAMSD)
     //  * @param duration The total simulation time
     //  * @param delta The lag time for averaging
     //  * @param particles The number of Monte Carlo samples (default: 10000)
-    //  * @param quad_order The order of quadrature for integration (default: 10)
+    //  * @param quad_order The order of quadrature for integration (default:
+    //  10)
     //  * @param time_step The time step for discretization (default: 0.01)
     //  * @return Result containing the EATAMSD value, or an Error
     //  */
     // virtual Result<double> eatamsd(double duration, double delta,
-    //                                size_t particles = 10000, int quad_order = 10,
-    //                                double time_step = 0.01);
+    //                                size_t particles = 10000, int quad_order =
+    //                                10, double time_step = 0.01);
 };
 
 /**
@@ -432,7 +467,7 @@ public:
  * This concept ensures that template parameters are derived from
  * `PointProcess`.
  */
-export template<typename T>
+export template <typename T>
 concept Point = std::derived_from<T, PointProcess>;
 
 /**
@@ -442,11 +477,10 @@ concept Point = std::derived_from<T, PointProcess>;
  * This specialization provides concrete implementations for computing moments
  * of point stochastic processes.
  */
-template<Point T>
-struct Moment<T> {
+template <Point T> struct Moment<T> {
     double m_duration; ///< The time at which to compute the moment
-    int m_order; ///< The order of the moment
-    T &process; ///< Reference to the continuous process
+    int m_order;       ///< The order of the moment
+    T &process;        ///< Reference to the continuous process
 
     /**
      * @brief Computes the raw moment using parallel Monte Carlo simulation
@@ -580,7 +614,7 @@ auto PointProcess::simulate(double duration) -> Result<vec_pair> {
 /**
  * @brief Type alias for discrete trajectory data (step numbers, positions)
  */
-export using discrete_pair = std::pair<vector<size_t>, vector<double> >;
+export using discrete_pair = std::pair<vector<size_t>, vector<double>>;
 
 /**
  * @brief Abstract base class for discrete stochastic processes
@@ -601,8 +635,8 @@ export struct DiscreteProcess {
      * @return Result containing a pair of step numbers and position vectors, or
      * an Error
      *
-     * This pure virtual method must be implemented by derived classes to generate
-     * a single trajectory of the discrete stochastic process.
+     * This pure virtual method must be implemented by derived classes to
+     * generate a single trajectory of the discrete stochastic process.
      */
     virtual Result<discrete_pair> simulate(size_t num_steps) = 0;
 
@@ -650,7 +684,7 @@ export struct DiscreteProcess {
  * This concept ensures that template parameters are derived from
  * DiscreteProcess.
  */
-export template<typename T>
+export template <typename T>
 concept DP = std::derived_from<T, DiscreteProcess>;
 
 /**
@@ -660,11 +694,10 @@ concept DP = std::derived_from<T, DiscreteProcess>;
  * This specialization provides concrete implementations for computing moments
  * of discrete stochastic processes.
  */
-template<DP T>
-struct Moment<T> {
+template <DP T> struct Moment<T> {
     size_t m_num_steps; ///< The number of steps at which to compute the moment
-    int m_order; ///< The order of the moment
-    T &process; ///< Reference to the discrete process
+    int m_order;        ///< The order of the moment
+    T &process;         ///< Reference to the discrete process
 
     /**
      * @brief Computes the raw moment using parallel Monte Carlo simulation
@@ -729,13 +762,12 @@ auto DiscreteProcess::central_moment(size_t num_steps, int order,
     return moment.central_moment(particles);
 }
 
-template<CP T>
-class FirstPassageTime<T> {
-private:
-    T &m_process; ///< Reference to the stochastic process
+template <CP T> class FirstPassageTime<T> {
+  private:
+    T &m_process;         ///< Reference to the stochastic process
     double_pair m_domain; ///< The domain interval (a, b)
 
-public:
+  public:
     /**
      * @brief Default constructor
      *
@@ -768,8 +800,8 @@ public:
         auto [a, b] = domain;
         if (a >= b) {
             throw std::invalid_argument(std::format(
-                "The domain (a, b) must be a valid interval, but got ({}, {})", a,
-                b));
+                "The domain (a, b) must be a valid interval, but got ({}, {})",
+                a, b));
         }
     }
 
@@ -787,12 +819,13 @@ public:
      *
      * @return double_pair The domain interval (a, b)
      *
-     * @post The returned pair represents the interval bounds where first < second
+     * @post The returned pair represents the interval bounds where first <
+     * second
      */
     [[nodiscard]] double_pair get_domain() const { return m_domain; }
 
-    Result<Option<double> > simulate(double max_duration,
-                                     double time_step = 0.01) {
+    Result<Option<double>> simulate(double max_duration,
+                                    double time_step = 0.01) {
         if (max_duration <= 0) {
             return Err(Error::InvalidArgument("max_duration must be positive"));
         }

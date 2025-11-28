@@ -12,7 +12,9 @@ import diffusionx.simulation.basic.utils;
 
 using std::vector;
 
-export Result<vec_pair> simulate_bm(double start_position, double diffusion_coefficient, double duration, double time_step) {
+export Result<vec_pair> simulate_bm(double start_position,
+                                    double diffusion_coefficient,
+                                    double duration, double time_step) {
     if (auto result = check_duration_time_step(duration, time_step); !result) {
         return Err(result.error());
     }
@@ -29,10 +31,9 @@ export Result<vec_pair> simulate_bm(double start_position, double diffusion_coef
     positions[0] = start_position;
 
     // Generate increments
-    auto increments =
-        randn(num_steps - 1, 0.0,
-              std::sqrt(2.0 * diffusion_coefficient * time_step)).value();
-
+    auto increments = randn(num_steps - 1, 0.0,
+                            std::sqrt(2.0 * diffusion_coefficient * time_step))
+                          .value();
 
     for (size_t i = 1; i < num_steps; ++i) {
         current_t += time_step;
@@ -43,8 +44,7 @@ export Result<vec_pair> simulate_bm(double start_position, double diffusion_coef
 
     double last_step = duration - current_t;
     double increment =
-        randn(0.0, std::sqrt(2.0 * diffusion_coefficient * last_step))
-            .value();
+        randn(0.0, std::sqrt(2.0 * diffusion_coefficient * last_step)).value();
     current_x += increment;
     times.back() = duration;
     positions.back() = current_x;
@@ -123,11 +123,13 @@ export class Bm final : public ContinuousProcess {
      * where Z ~ N(0, 1)
      */
     Result<vec_pair> simulate(double duration, double time_step) override {
-        return simulate_bm(m_start_position, m_diffusion_coefficient, duration, time_step);
+        return simulate_bm(m_start_position, m_diffusion_coefficient, duration,
+                           time_step);
     }
 
     Result<double> displacement(double duration, double time_step) override {
-        if (auto result = check_duration_time_step(duration, time_step); !result) {
+        if (auto result = check_duration_time_step(duration, time_step);
+            !result) {
             return Err(result.error());
         }
 
@@ -137,7 +139,8 @@ export class Bm final : public ContinuousProcess {
         // Generate increments
         auto increments =
             randn(num_steps - 1, 0.0,
-                  std::sqrt(2.0 * m_diffusion_coefficient * time_step)).value();
+                  std::sqrt(2.0 * m_diffusion_coefficient * time_step))
+                .value();
         // Simulate trajectory
         for (const auto increment : increments) {
             current_x += increment;

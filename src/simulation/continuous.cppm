@@ -2,7 +2,8 @@
  * @file continuous.cppm
  * @brief Continuous stochastic process implementations
  *
- * This module provides concrete implementations of various continuous stochastic processes.
+ * This module provides concrete implementations of various continuous
+ * stochastic processes.
  */
 
 export module diffusionx.simulation.continuous;

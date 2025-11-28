@@ -1,7 +1,7 @@
 /**
  * @file simulation.cppm
  * @brief Main simulation module
- * 
+ *
  * This module provides the main interface for stochastic process simulation.
  */
 

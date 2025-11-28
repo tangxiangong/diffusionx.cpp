@@ -1,8 +1,8 @@
 module;
 
-#include <vector>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 export module diffusionx.simulation.basic.moment;
 
@@ -13,15 +13,14 @@ using std::vector;
 /**
  * @brief Template structure for computing moments of stochastic processes
  * @tparam T The type of the process
- * 
+ *
  * This structure provides methods to compute raw and central moments of
  * stochastic processes using Monte Carlo simulation.
  */
-export template<typename T>
-struct Moment {
+export template <typename T> struct Moment {
     double m_duration; ///< The time at which to compute the moment
-    int m_order; ///< The order of the moment
-    T &process; ///< Reference to the process
+    int m_order;       ///< The order of the moment
+    T &process;        ///< Reference to the process
 
     /**
      * @brief Default constructor
@@ -30,7 +29,8 @@ struct Moment {
 
     /**
      * @brief Constructs a moment calculator with specified parameters
-     * @param duration The time at which to compute the moment (must be positive)
+     * @param duration The time at which to compute the moment (must be
+     * positive)
      * @param order The order of the moment (must be non-negative)
      * @param process Reference to the process
      * @throws std::invalid_argument if duration <= 0 or order < 0
@@ -51,12 +51,15 @@ struct Moment {
      * @param time_step The time step for discretization (default: 0.01)
      * @return Result containing the raw moment value, or an Error
      */
-    auto raw_moment(size_t particles = 10000, double time_step = 0.01) -> Result<double> {
+    auto raw_moment(size_t particles = 10000, double time_step = 0.01)
+        -> Result<double> {
         if (particles == 0) {
-            return Err(Error::InvalidArgument("The number of particles must be greater than 0"));
+            return Err(Error::InvalidArgument(
+                "The number of particles must be greater than 0"));
         }
         if (time_step <= 0) {
-            return Err(Error::InvalidArgument("The time step must be greater than 0"));
+            return Err(
+                Error::InvalidArgument("The time step must be greater than 0"));
         }
         return Err(Error::NotImplemented("The method is not implemented"));
     }
@@ -67,12 +70,15 @@ struct Moment {
      * @param time_step The time step for discretization (default: 0.01)
      * @return Result containing the central moment value, or an Error
      */
-    auto central_moment(size_t particles = 10000, double time_step = 0.01) -> Result<double> {
+    auto central_moment(size_t particles = 10000, double time_step = 0.01)
+        -> Result<double> {
         if (particles == 0) {
-            return Err(Error::InvalidArgument("The number of particles must be greater than 0"));
+            return Err(Error::InvalidArgument(
+                "The number of particles must be greater than 0"));
         }
         if (time_step <= 0) {
-            return Err(Error::InvalidArgument("The time step must be greater than 0"));
+            return Err(
+                Error::InvalidArgument("The time step must be greater than 0"));
         }
         return Err(Error::NotImplemented("The method is not implemented"));
     }
@@ -83,12 +89,15 @@ struct Moment {
      * @param time_step The time step for discretization (default: 0.01)
      * @return Result containing the MSD, or an Error
      */
-    auto msd(size_t particles = 10000, double time_step = 0.01) -> Result<double> {
+    auto msd(size_t particles = 10000, double time_step = 0.01)
+        -> Result<double> {
         if (particles == 0) {
-            return Err(Error::InvalidArgument("The number of particles must be greater than 0"));
+            return Err(Error::InvalidArgument(
+                "The number of particles must be greater than 0"));
         }
         if (time_step <= 0) {
-            return Err(Error::InvalidArgument("The time step must be greater than 0"));
+            return Err(
+                Error::InvalidArgument("The time step must be greater than 0"));
         }
         return Err(Error::NotImplemented("The method is not implemented"));
     }

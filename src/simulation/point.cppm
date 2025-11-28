@@ -1,7 +1,7 @@
 /**
  * @file point.cppm
  * @brief Point process implementations
- * 
+ *
  * This module provides concrete implementations of various point processes.
  */
 

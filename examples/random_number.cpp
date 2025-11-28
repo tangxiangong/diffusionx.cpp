@@ -6,7 +6,8 @@ int main() {
     // 测试正态分布
     auto normal_result = randn<double>(10, 0.0, 1.0);
     if (normal_result) {
-        std::println("正态分布样本生成成功，样本数量: {}", normal_result->size());
+        std::println("正态分布样本生成成功，样本数量: {}",
+                     normal_result->size());
     } else {
         std::println("正态分布样本生成失败: {}", normal_result.error().message);
     }
@@ -14,9 +15,11 @@ int main() {
     // 测试均匀分布
     auto uniform_result = rand<double>(5, 0.0, 1.0);
     if (uniform_result) {
-        std::println("均匀分布样本生成成功，样本数量: {}", uniform_result->size());
+        std::println("均匀分布样本生成成功，样本数量: {}",
+                     uniform_result->size());
     } else {
-        std::println("均匀分布样本生成失败: {}", uniform_result.error().message);
+        std::println("均匀分布样本生成失败: {}",
+                     uniform_result.error().message);
     }
 
     // 测试指数分布

@@ -131,7 +131,8 @@ export class BnG final : public ContinuousProcess {
     double start() override { return m_start_position; }
 
     Result<double> displacement(double duration, double time_step) override {
-        if (auto result = check_duration_time_step(duration, time_step); !result) {
+        if (auto result = check_duration_time_step(duration, time_step);
+            !result) {
             return Err(result.error());
         }
 
@@ -151,7 +152,8 @@ export class BnG final : public ContinuousProcess {
             current_x += std::abs(current_y) * noises_bgn[i] * scale_bng;
         }
 
-        double last_step = duration - static_cast<double>(num_steps - 1) * time_step;
+        double last_step =
+            duration - static_cast<double>(num_steps - 1) * time_step;
         scale_ou = std::sqrt(last_step);
         scale_bng = std::sqrt(2.0 * last_step);
 

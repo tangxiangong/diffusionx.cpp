@@ -24,7 +24,7 @@ using std::numbers::pi;
  * @param beta The skewness parameter (must be in [-1, 1])
  * @param sigma The scale parameter (must be positive)
  * @return Result containing true if parameters are valid, or an Error
- * 
+ *
  * This function checks that the parameters satisfy the constraints for a
  * valid stable distribution.
  */
@@ -56,12 +56,11 @@ auto check_parameters(T alpha, T beta, T sigma) -> Result<bool> {
  * @param alpha The stability parameter (must be in (0, 2] and ≠ 1)
  * @param beta The skewness parameter (must be in [-1, 1])
  * @return A sample from the standard stable distribution
- * 
+ *
  * This function implements the Chambers-Mallows-Stuck algorithm for generating
  * samples from a stable distribution when α ≠ 1.
  */
-template <Float T = double>
-auto sample_standard(T alpha, T beta) -> T {
+template <Float T = double> auto sample_standard(T alpha, T beta) -> T {
     T half_pi = pi / 2;
     T tmp = beta * tan(alpha * half_pi);
     T v = rand(-half_pi, half_pi).value();
@@ -79,12 +78,11 @@ auto sample_standard(T alpha, T beta) -> T {
  * @tparam T The floating-point type for the parameters
  * @param beta The skewness parameter (must be in [-1, 1])
  * @return A sample from the standard stable distribution with α = 1
- * 
+ *
  * This function implements the special case algorithm for generating samples
  * from a stable distribution when α = 1 (Cauchy-like distribution).
  */
-template <Float T = double>
-auto sample_standard(T beta) -> T {
+template <Float T = double> auto sample_standard(T beta) -> T {
     T half_pi = pi / 2;
     T v = rand(-half_pi, half_pi).value();
     T w = randexp().value();
@@ -104,8 +102,7 @@ auto sample_standard(T beta) -> T {
  * @param mu The location parameter
  * @return A sample from the stable distribution
  */
-template <Float T = double>
-auto sample(T alpha, T beta, T sigma, T mu) -> T {
+template <Float T = double> auto sample(T alpha, T beta, T sigma, T mu) -> T {
     T r = sample_standard(alpha, beta);
     return mu + (sigma * r);
 }
@@ -119,8 +116,7 @@ auto sample(T alpha, T beta, T sigma, T mu) -> T {
  * @param mu The location parameter
  * @return A sample from the stable distribution with α = 1
  */
-template <Float T = double>
-auto sample(T beta, T sigma, T mu) -> T {
+template <Float T = double> auto sample(T beta, T sigma, T mu) -> T {
     T r = sample_standard(beta);
     return (sigma * r) + mu + (2 * beta * sigma * sigma * log(sigma) / pi);
 }
@@ -134,15 +130,15 @@ auto sample(T beta, T sigma, T mu) -> T {
  * @param sigma The scale parameter (must be positive)
  * @param mu The location parameter
  * @return Result containing a stable distributed value, or an Error
- * 
+ *
  * This function generates a single random value from a stable distribution
  * with the specified parameters. Stable distributions are a family of
  * probability distributions that generalize the normal distribution and
  * are characterized by their stability under addition.
  */
 export template <Float T = double>
-auto rand_stable(T alpha, T beta = 0.0, T sigma = 1.0,
-                        T mu = 0.0) -> Result<T> {
+auto rand_stable(T alpha, T beta = 0.0, T sigma = 1.0, T mu = 0.0)
+    -> Result<T> {
     if (auto res = check_parameters(alpha, beta, sigma); !res) {
         return Err(res.error());
     }
@@ -161,15 +157,15 @@ auto rand_stable(T alpha, T beta = 0.0, T sigma = 1.0,
  * @param beta The skewness parameter (must be in [-1, 1])
  * @param sigma The scale parameter (must be positive)
  * @param mu The location parameter
- * @return Result containing a vector of n stable distributed values, or an Error
- * 
+ * @return Result containing a vector of n stable distributed values, or an
+ * Error
+ *
  * This function generates n random values from a stable distribution with the
  * specified parameters. Uses parallel generation for improved performance.
  */
 export template <Float T>
-auto rand_stable(size_t n, T alpha, T beta = 0.0,
-                        T sigma = 1.0, T mu = 0.0)
-    -> Result<vector<T> > {
+auto rand_stable(size_t n, T alpha, T beta = 0.0, T sigma = 1.0, T mu = 0.0)
+    -> Result<vector<T>> {
     if (auto res = check_parameters(alpha, beta, sigma); !res) {
         return Err(res.error());
     }
@@ -188,14 +184,14 @@ auto rand_stable(size_t n, T alpha, T beta = 0.0,
  *
  * @tparam T The floating-point type for the parameters
  * @param alpha The stability parameter (must be in (0, 1))
- * @return Result containing a maximally skewed stable distributed value, or an Error
- * 
+ * @return Result containing a maximally skewed stable distributed value, or an
+ * Error
+ *
  * This function generates a single random value from a maximally skewed stable
  * distribution (β = 1) with unit scale and zero location. This is a special
  * case often used in modeling heavy-tailed phenomena.
  */
-export template<Float T>
-auto rand_skew_stable(T alpha) -> Result<T> {
+export template <Float T> auto rand_skew_stable(T alpha) -> Result<T> {
     if (alpha <= 0 || alpha >= 1) {
         return Err(Error::InvalidArgument(std::format(
             "The stable index `alpha` must be in (0, 1), but got {}", alpha)));
@@ -204,18 +200,20 @@ auto rand_skew_stable(T alpha) -> Result<T> {
 }
 
 /**
- * @brief Generates a vector of maximally skewed stable distributed random values
+ * @brief Generates a vector of maximally skewed stable distributed random
+ * values
  *
  * @tparam T The floating-point type for the parameters
  * @param n The number of values to generate
  * @param alpha The stability parameter (must be in (0, 1))
- * @return Result containing a vector of n maximally skewed stable distributed values, or an Error
- * 
+ * @return Result containing a vector of n maximally skewed stable distributed
+ * values, or an Error
+ *
  * This function generates n random values from a maximally skewed stable
  * distribution (β = 1) with unit scale and zero location.
  */
-export template<Float T>
-auto rand_skew_stable(size_t n, T alpha) -> Result<vector<T> > {
+export template <Float T>
+auto rand_skew_stable(size_t n, T alpha) -> Result<vector<T>> {
     if (alpha <= 0 || alpha >= 1) {
         return Err(Error::InvalidArgument(std::format(
             "The stable index `alpha` must be in (0, 1), but got {}", alpha)));
@@ -226,19 +224,20 @@ auto rand_skew_stable(size_t n, T alpha) -> Result<vector<T> > {
 
 /**
  * @brief A class representing a stable distribution
- * 
+ *
  * This class encapsulates a stable distribution with fixed parameters.
- * It provides methods to sample from the distribution and access the parameters.
- * Stable distributions are a rich family of probability distributions that
- * include the normal, Cauchy, and Lévy distributions as special cases.
+ * It provides methods to sample from the distribution and access the
+ * parameters. Stable distributions are a rich family of probability
+ * distributions that include the normal, Cauchy, and Lévy distributions as
+ * special cases.
  */
 export class Stable {
     double m_alpha; ///< The stability parameter (α ∈ (0, 2])
-    double m_beta; ///< The skewness parameter (β ∈ [-1, 1])
+    double m_beta;  ///< The skewness parameter (β ∈ [-1, 1])
     double m_sigma; ///< The scale parameter (σ > 0)
-    double m_mu; ///< The location parameter (μ ∈ ℝ)
+    double m_mu;    ///< The location parameter (μ ∈ ℝ)
 
-public:
+  public:
     /**
      * @brief Default constructor (parameters must be set before use)
      */
@@ -283,11 +282,11 @@ public:
      * @brief Generates multiple samples from the stable distribution
      * @param n The number of samples to generate
      * @return Result containing a vector of n samples, or an Error
-     * 
+     *
      * This method generates n independent samples from the stable distribution
      * using the stored parameters.
      */
-    [[nodiscard]] auto sample(size_t n) const -> Result<vector<double> >;
+    [[nodiscard]] auto sample(size_t n) const -> Result<vector<double>>;
 };
 
 Stable::Stable(double alpha, double beta, double sigma, double mu) {
@@ -308,6 +307,6 @@ auto Stable::get_sigma() const -> double { return m_sigma; }
 
 auto Stable::get_mu() const -> double { return m_mu; }
 
-auto Stable::sample(size_t n) const -> Result<vector<double> > {
+auto Stable::sample(size_t n) const -> Result<vector<double>> {
     return rand_stable(n, m_alpha, m_beta, m_sigma, m_mu);
 }

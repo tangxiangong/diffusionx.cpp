@@ -1,7 +1,7 @@
 /**
  * @file random.cppm
  * @brief Main module for random number generation and probability distributions
- * 
+ *
  * This module provides a comprehensive collection of random number generators
  * and probability distributions for stochastic simulations. It includes:
  * - Utility functions for random number generation

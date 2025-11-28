@@ -16,18 +16,20 @@ using std::vector;
  * @brief Generates a vector of exponentially distributed random values
  * @tparam T The floating-point type for the generated values
  * @param n The number of values to generate
- * @param rate The rate parameter (λ) of the exponential distribution (must be positive)
- * @return Result containing a vector of n exponentially distributed values, or an Error
- * 
+ * @param rate The rate parameter (λ) of the exponential distribution (must be
+ * positive)
+ * @return Result containing a vector of n exponentially distributed values, or
+ * an Error
+ *
  * This function generates n random values from an exponential distribution with
  * the specified rate parameter. The exponential distribution has probability
  * density function f(x) = λe^(-λx) for x ≥ 0.
- * 
+ *
  * @note Uses parallel generation for improved performance
  * @note Each thread uses its own thread-local generator for thread safety
  */
-export template<Float T = double>
-auto randexp(size_t n, T rate = 1.0) -> Result<vector<T> > {
+export template <Float T = double>
+auto randexp(size_t n, T rate = 1.0) -> Result<vector<T>> {
     if (rate <= 0) {
         return Err(Error::InvalidArgument(
             format("The rate `rate` must be positive, but got {}", rate)));
@@ -43,17 +45,17 @@ auto randexp(size_t n, T rate = 1.0) -> Result<vector<T> > {
 /**
  * @brief Generates a single exponentially distributed random value
  * @tparam T The floating-point type for the generated value
- * @param rate The rate parameter (λ) of the exponential distribution (must be positive)
+ * @param rate The rate parameter (λ) of the exponential distribution (must be
+ * positive)
  * @return Result containing an exponentially distributed value, or an Error
- * 
- * This function generates a single random value from an exponential distribution
- * with the specified rate parameter. The exponential distribution has probability
- * density function f(x) = λe^(-λx) for x ≥ 0.
- * 
+ *
+ * This function generates a single random value from an exponential
+ * distribution with the specified rate parameter. The exponential distribution
+ * has probability density function f(x) = λe^(-λx) for x ≥ 0.
+ *
  * @note Uses thread-local generator for thread safety
  */
-export template<Float T = double>
-auto randexp(T rate = 1.0) -> Result<T> {
+export template <Float T = double> auto randexp(T rate = 1.0) -> Result<T> {
     if (rate <= 0) {
         return Err(Error::InvalidArgument(
             format("The rate `rate` must be positive, but got {}", rate)));
@@ -66,19 +68,19 @@ auto randexp(T rate = 1.0) -> Result<T> {
 /**
  * @brief A class representing an exponential distribution
  * @tparam T The floating-point type for the distribution
- * 
- * This class encapsulates an exponential distribution with a fixed rate parameter.
- * It provides methods to sample from the distribution and access the parameters.
- * The exponential distribution is commonly used to model waiting times between
- * events in a Poisson process.
+ *
+ * This class encapsulates an exponential distribution with a fixed rate
+ * parameter. It provides methods to sample from the distribution and access the
+ * parameters. The exponential distribution is commonly used to model waiting
+ * times between events in a Poisson process.
  */
-export template<Float T = double>
-class Exponential {
+export template <Float T = double> class Exponential {
     T m_rate = 1.0; ///< The rate parameter (λ) of the distribution
 
-public:
+  public:
     /**
-     * @brief Default constructor creating an exponential distribution with rate = 1.0
+     * @brief Default constructor creating an exponential distribution with rate
+     * = 1.0
      */
     Exponential() = default;
 
@@ -105,11 +107,11 @@ public:
      * @brief Generates multiple samples from the exponential distribution
      * @param n The number of samples to generate
      * @return Result containing a vector of n samples, or an Error
-     * 
-     * This method generates n independent samples from the exponential distribution
-     * using the stored rate parameter.
+     *
+     * This method generates n independent samples from the exponential
+     * distribution using the stored rate parameter.
      */
-    [[nodiscard]] auto sample(size_t n) const -> Result<vector<T> > {
+    [[nodiscard]] auto sample(size_t n) const -> Result<vector<T>> {
         return randexp(n, m_rate);
     }
 
@@ -118,7 +120,5 @@ public:
      * @return Result containing a vector of n samples, or an Error
      *
      */
-    [[nodiscard]] auto sample() const -> Result<T> {
-        return randexp(m_rate);
-    }
+    [[nodiscard]] auto sample() const -> Result<T> { return randexp(m_rate); }
 };

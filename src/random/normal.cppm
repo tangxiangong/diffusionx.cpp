@@ -59,8 +59,7 @@ auto randn(size_t n, T mean = 0, T stddev = 1) -> Result<vector<T>> {
  *
  * @note Uses thread-local generator for thread safety
  */
-export template <Float T = double>
-auto randn(T mean, T stddev) -> Result<T> {
+export template <Float T = double> auto randn(T mean, T stddev) -> Result<T> {
     if (stddev <= 0) {
         return Err(Error::InvalidArgument(format(
             "The standard deviation `stddev` must be positive, but got {}",
@@ -71,13 +70,11 @@ auto randn(T mean, T stddev) -> Result<T> {
     return Ok(dist(gen));
 }
 
-export template <Float T = double>
-auto randn() -> T {
+export template <Float T = double> auto randn() -> T {
     thread_local static std::mt19937 gen = generator();
     std::normal_distribution<T> dist(0, 1);
     return dist(gen);
 }
-
 
 /**
  * @brief A class representing a normal (Gaussian) distribution
