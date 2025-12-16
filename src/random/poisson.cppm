@@ -28,8 +28,8 @@ using std::vector;
  * @note Uses parallel generation for improved performance
  * @note Each thread uses its own thread-local generator for thread safety
  */
-export template <UnsignedInt T = unsigned int>
-auto rand_poisson(size_t n, double rate = 1.0) -> Result<vector<T>> {
+export template <Real R = double, UnsignedInt T = unsigned int>
+auto rand_poisson(size_t n, R rate = 1.0) -> Result<vector<T>> {
     if (rate <= 0) {
         return Err(Error::InvalidArgument(
             format("The rate `rate` must be positive, but got {}", rate)));
@@ -55,8 +55,8 @@ auto rand_poisson(size_t n, double rate = 1.0) -> Result<vector<T>> {
  *
  * @note Uses thread-local generator for thread safety
  */
-export template <UnsignedInt T = unsigned int>
-auto rand_poisson(double rate = 1.0) -> Result<T> {
+export template <Real R = double, UnsignedInt T = unsigned int>
+auto rand_poisson(R rate = 1.0) -> Result<T> {
     if (rate <= 0) {
         return Err(Error::InvalidArgument(
             format("The rate `rate` must be positive, but got {}", rate)));
@@ -75,8 +75,10 @@ auto rand_poisson(double rate = 1.0) -> Result<T> {
  * events occurring in a fixed interval of time or space, given a constant
  * average rate.
  */
-export class Poisson {
-    double m_rate = 1.0; ///< The rate parameter (λ) of the distribution
+export
+template <Real R>
+class Poisson {
+    R m_rate = 1; ///< The rate parameter (λ) of the distribution
 
   public:
     /**
@@ -90,7 +92,7 @@ export class Poisson {
      * @param rate The rate parameter (λ) of the distribution (must be positive)
      * @throws std::invalid_argument if rate is not positive
      */
-    explicit Poisson(double rate) : m_rate(rate) {
+    explicit Poisson(R rate) : m_rate(rate) {
         if (m_rate <= 0) {
             throw std::invalid_argument(
                 format("The rate parameter `rate` must be positive, but got {}",
@@ -102,11 +104,11 @@ export class Poisson {
      * @brief Gets the rate parameter of the distribution
      * @return The rate parameter (λ)
      */
-    [[nodiscard]] auto get_rate() const -> double { return m_rate; }
+    [[nodiscard]] auto get_rate() const -> R { return m_rate; }
 
     /**
      * @brief Generates multiple samples from the Poisson distribution
-     * @tparam T The unsigned integer type for the samples (default: unsigned
+     * @tparam U The unsigned integer type for the samples (default: unsigned
      * int)
      * @param n The number of samples to generate
      * @return Result containing a vector of n samples, or an Error
@@ -114,9 +116,9 @@ export class Poisson {
      * This method generates n independent samples from the Poisson distribution
      * using the stored rate parameter.
      */
-    template <UnsignedInt T = unsigned int>
-    [[nodiscard]] auto sample(size_t n) const -> Result<vector<T>> {
-        return rand_poisson<T>(n, m_rate);
+    template <UnsignedInt U>
+    [[nodiscard]] auto sample(size_t n) const -> Result<vector<U>> {
+        return rand_poisson<R, U>(n, m_rate);
     }
 
     /**
@@ -128,6 +130,6 @@ export class Poisson {
      */
     template <UnsignedInt T = unsigned int>
     [[nodiscard]] auto sample() const -> Result<T> {
-        return rand_poisson<T>(m_rate);
+        return rand_poisson<R, T>(m_rate);
     }
 };

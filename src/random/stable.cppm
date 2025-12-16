@@ -231,17 +231,15 @@ auto rand_skew_stable(size_t n, T alpha) -> Result<vector<T>> {
  * distributions that include the normal, Cauchy, and Lévy distributions as
  * special cases.
  */
-export class Stable {
-    double m_alpha; ///< The stability parameter (α ∈ (0, 2])
-    double m_beta;  ///< The skewness parameter (β ∈ [-1, 1])
-    double m_sigma; ///< The scale parameter (σ > 0)
-    double m_mu;    ///< The location parameter (μ ∈ ℝ)
+export template<Float T = double>
+class Stable {
+    T m_alpha; ///< The stability parameter (α ∈ (0, 2])
+    T m_beta;  ///< The skewness parameter (β ∈ [-1, 1])
+    T m_sigma; ///< The scale parameter (σ > 0)
+    T m_mu;    ///< The location parameter (μ ∈ ℝ)
 
   public:
-    /**
-     * @brief Default constructor (parameters must be set before use)
-     */
-    Stable() = default;
+    Stable() = delete;
 
     /**
      * @brief Constructs a stable distribution with specified parameters
@@ -251,32 +249,32 @@ export class Stable {
      * @param mu The location parameter
      * @throws std::invalid_argument if parameters are invalid
      */
-    explicit Stable(double alpha, double beta = 0.0, double sigma = 1.0,
-                    double mu = 0.0);
+    explicit Stable(T alpha, T beta = 0, T sigma = 1,
+                    T mu = 0);
 
     /**
      * @brief Gets the stability parameter of the distribution
      * @return The stability parameter (α)
      */
-    [[nodiscard]] auto get_alpha() const -> double;
+    [[nodiscard]] auto get_alpha() const -> T;
 
     /**
      * @brief Gets the skewness parameter of the distribution
      * @return The skewness parameter (β)
      */
-    [[nodiscard]] auto get_beta() const -> double;
+    [[nodiscard]] auto get_beta() const -> T;
 
     /**
      * @brief Gets the scale parameter of the distribution
      * @return The scale parameter (σ)
      */
-    [[nodiscard]] auto get_sigma() const -> double;
+    [[nodiscard]] auto get_sigma() const -> T;
 
     /**
      * @brief Gets the location parameter of the distribution
      * @return The location parameter (μ)
      */
-    [[nodiscard]] auto get_mu() const -> double;
+    [[nodiscard]] auto get_mu() const -> T;
 
     /**
      * @brief Generates multiple samples from the stable distribution
@@ -286,10 +284,11 @@ export class Stable {
      * This method generates n independent samples from the stable distribution
      * using the stored parameters.
      */
-    [[nodiscard]] auto sample(size_t n) const -> Result<vector<double>>;
+    [[nodiscard]] auto sample(size_t n) const -> Result<vector<T>>;
 };
 
-Stable::Stable(double alpha, double beta, double sigma, double mu) {
+template<Float T>
+Stable<T>::Stable(T alpha, T beta, T sigma, T mu) {
     if (auto res = check_parameters(alpha, beta, sigma); !res) {
         throw std::invalid_argument(res.error().message);
     }
@@ -299,14 +298,19 @@ Stable::Stable(double alpha, double beta, double sigma, double mu) {
     m_mu = mu;
 }
 
-auto Stable::get_alpha() const -> double { return m_alpha; }
+template<Float T>
+auto Stable<T>::get_alpha() const -> T { return m_alpha; }
 
-auto Stable::get_beta() const -> double { return m_beta; }
+template<Float T>
+auto Stable<T>::get_beta() const -> T { return m_beta; }
 
-auto Stable::get_sigma() const -> double { return m_sigma; }
+template<Float T>
+auto Stable<T>::get_sigma() const -> T { return m_sigma; }
 
-auto Stable::get_mu() const -> double { return m_mu; }
+template<Float T>
+auto Stable<T>::get_mu() const -> T { return m_mu; }
 
-auto Stable::sample(size_t n) const -> Result<vector<double>> {
+template<Float T>
+auto Stable<T>::sample(size_t n) const -> Result<vector<T>> {
     return rand_stable(n, m_alpha, m_beta, m_sigma, m_mu);
 }
